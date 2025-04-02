@@ -1,0 +1,26 @@
+BasedOnStyle: LLVM
+
+BreakBeforeBraces: Allman
+
+IndentWidth: 4
+ColumnLimit: 85
+
+AlignConsecutiveAssignments: true
+
+AlignTrailingComments: 
+    Kind: Always
+    OverEmptyLines: 2     # Specifies the number of empty lines to apply alignment
+MaxEmptyLinesToKeep: 2    # Specifies the maximum number of empty lines to preserve
+
+AlignAfterOpenBracket: Align
+
+SpaceBeforeAssignmentOperators: true
+
+Cpp11BracedListStyle: false
+
+BinPackArguments: false
+
+PointerAlignment: Left
+
+SortIncludes: false
+

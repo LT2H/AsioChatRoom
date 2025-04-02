@@ -1,0 +1,11 @@
+#pragma once
+
+#include <string>
+#include <iostream>
+
+/// \brief Accumulate a vector to produce the mean and the first moment of the distribution.
+///
+/// This computes the mean and the first moment of a vector of double values.
+///
+void print(const std::string& name);
+
