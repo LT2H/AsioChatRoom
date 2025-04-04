@@ -12,12 +12,12 @@ template <typename T> struct MessageHeader
 {
     T id{};
     uint32_t size{ 0 }; // Size of the whole message
-}
+};
 
 template <typename T>
 struct Message
 {
-    MessageHeader<T> header {}
+    MessageHeader<T> header {};
     std::vector<uint8_t> body;
 
     // returns the size of entire message packet in bytes
@@ -46,9 +46,8 @@ struct Message
         msg.body.resize(msg.body.size() + sizeof(DataType));
 
         // Physically copy the data into the newly allocated vector space
-        std::copy(reinterpret_cast<const uint8_t*>(&data),
-                  reinterpret_cast<const uint8_t*>(&data) + sizeof(DataType),
-                  msg.body.data() + i);
+        std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
+
 
         // Recalculate the message size
         msg.header.size = msg.size();
@@ -69,7 +68,7 @@ struct Message
         size_t i{ msg.body.size() - sizeof(DataType) };
 
         // Physically copy the data from the vector into the user variable
-        std::copy(&data, msg.body.data() + i, sizeof(DataType));
+        std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
 
         // Shrink the vector to remove the read bytes, and reset end pos
         msg.body.resize(i);
@@ -77,7 +76,7 @@ struct Message
         // Return the target message so it can be chained
         return msg;
     }
-}
+};
 
 } // namespace net
 } // namespace olc
