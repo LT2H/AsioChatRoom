@@ -21,8 +21,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(asio)
 # Adds asio
 
-# The compiled library code is here
-add_subdirectory(src)
-
 # The executable code is here
 add_subdirectory(apps)
+add_subdirectory(include)

@@ -1,4 +1,4 @@
-#include <mylib/lib.h>
+#include <NetCommon/NetCommon.h>
 
 #include <iostream>
 #include <vector>
@@ -19,22 +19,20 @@ void grab_some_data(asio::ip::tcp::socket& socket)
 {
     // The instruction we primed the context with was this read_some func, so it'll
     // read as much as it can and display it to the console
-    socket.async_read_some(asio::buffer(buffer.data(), buffer.size()),
-                           [&](std::error_code ec, std::size_t length)
-                           {
-                               if (!ec)
-                               {
-                                   std::cout << "\n\nRead " << length
-                                             << " bytes\n\n";
+    socket.async_read_some(
+        asio::buffer(buffer.data(), buffer.size()), [&](std::error_code ec, std::size_t length) {
+            if (!ec)
+            {
+                std::cout << "\n\nRead " << length << " bytes\n\n";
 
-                                   for (const auto& c : buffer)
-                                   {
-                                       std::cout << c;
-                                   }
+                for (const auto& c : buffer)
+                {
+                    std::cout << c;
+                }
 
-                                   grab_some_data(socket);
-                               }
-                           });
+                grab_some_data(socket);
+            }
+        });
 }
 
 int main()
@@ -46,19 +44,18 @@ int main()
     asio::io_context context;
 
     // Give some fake tasks to asio so the context doesn't finish
-    asio::io_context::work idle_work{ context };
+    asio::io_context::work idle_work{context};
 
     // Start the context
     // Allow that context to run in its own thread, so if it does need to stop and
     // wait, it doesn't block the main program execution
-    std::thread thr_context{ std::thread([&] { context.run(); }) };
+    std::thread thr_context{std::thread([&] { context.run(); })};
 
     // Get the address of somewhere we wish to connect to
-    asio::ip::tcp::endpoint endpoint{ asio::ip::make_address("51.38.81.49", ec),
-                                      80 };
+    asio::ip::tcp::endpoint endpoint{asio::ip::make_address("51.38.81.49", ec), 80};
 
     // Create a socket, the context will deliver the impl
-    asio::ip::tcp::socket socket{ context };
+    asio::ip::tcp::socket socket{context};
 
     // Tell socket to try and connect
     socket.connect(endpoint, ec);
@@ -79,9 +76,9 @@ int main()
         grab_some_data(socket);
 
         // Once it's primed, we then write our HTTP request, and then we wait
-        std::string request{ "GET / HTTP/1.1\r\n"
-                             "Host: example.com\r\n"
-                             "Connection: close\r\n\r\n" };
+        std::string request{"GET / HTTP/1.1\r\n"
+                            "Host: example.com\r\n"
+                            "Connection: close\r\n\r\n"};
 
         socket.write_some(asio::buffer(request.data(), request.size()), ec);
 
