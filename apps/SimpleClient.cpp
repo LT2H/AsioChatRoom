@@ -1,5 +1,4 @@
-#include <NetCommon/NetMessage.h>
-#include <NetCommon/NetClient.h>
+#include <NetCommon/FwNet.h>
 
 #include <iostream>
 
@@ -9,11 +8,12 @@ enum class CustomMsgTypes : uint32_t
     MovePlayer
 };
 
-class CustomClient : public olc::net::ClientInterface<CustomeMsgTypes>
+class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 {
   public:
-    bool fire_bullet(float x, float y) {
-        olc::net::Message<CustomMsgTypes> msg;
+    bool fire_bullet(float x, float y)
+    {
+        fw::net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::FireBullet;
         msg << x << y;
         send(msg);
@@ -22,7 +22,7 @@ class CustomClient : public olc::net::ClientInterface<CustomeMsgTypes>
 
 int main()
 {
-    // olc::net::Message<CustomMsgTypes> msg;
+    // fw::net::Message<CustomMsgTypes> msg;
     // msg.header.id = CustomMsgTypes::FireBullet;
 
     // int a{ 1 };
@@ -47,7 +47,7 @@ int main()
 
     CustomClient client;
     client.connect("community.onelonecoder.com", 60000);
-    client.fire_bullet();
+    client.fire_bullet(0.5f, 0.7f);
 
     return 0;
 }
