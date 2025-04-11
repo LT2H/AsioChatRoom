@@ -71,27 +71,27 @@ template <typename T> class ServerInterface
                         << "[SERVER] New Connection: " << socket.remote_endpoint()
                         << "\n";
 
-                    // auto new_conn{ std::make_shared<Connection<T>>(
-                    //     Connection<T>::owner::server,
-                    //     asio_context_,
-                    //     std::move(socket),
-                    //     messages_in_) };
+                    auto new_conn{ std::make_shared<Connection<T>>(
+                        Connection<T>::Owner::server,
+                        asio_context_,
+                        std::move(socket),
+                        messages_in_) };
 
                     // Give the user server a chance to deny connection
-                    // if (on_client_connect(new_conn))
-                    // {
-                    //     // Connection allowed, so add to container of new conns
-                    //     connections.push_back(std::move(newconn));
+                    if (on_client_connect(new_conn))
+                    {
+                        // Connection allowed, so add to container of new conns
+                        connections_.push_back(std::move(new_conn));
 
-                    //     connections.back()->connect_to_client(++client_id_counter_);
+                        connections_.back()->connect_to_client(++client_id_counter_);
 
-                    //     std::cout << "[" << connections.back()->get_id()
-                    //               << "] Connection Approved\n"
-                    // }
-                    // else
-                    // {
-                    //     std::cout << "[-----] Connection Denied\n";
-                    // }
+                        std::cout << "[" << connections_.back()->id()
+                                  << "] Connection Approved\n";
+                    }
+                    else
+                    {
+                        std::cout << "[-----] Connection Denied\n";
+                    }
                 }
                 else
                 {
