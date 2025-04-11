@@ -5,7 +5,7 @@
 #include "NetMessage.h"
 #include "NetCommon.h"
 
-namespace olc
+namespace fw
 {
 namespace net
 {
@@ -38,8 +38,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
     // This queue holds all messages that have been received from the remote side of
     // this connection. Note it is a referece as the "owner" of this connection is
     // expected to provide a queue
-    TsQueue<OwnedMessage>& messages_in_;
+    TsQueue<OwnedMessage<T>>& messages_in_;
 };
 } // namespace net
 
-} // namespace olc
+} // namespace fw
