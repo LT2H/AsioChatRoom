@@ -2,7 +2,7 @@
 
 #include "NetCommon.h"
 
-namespace olc
+namespace fw
 {
 namespace net
 {
@@ -79,4 +79,4 @@ struct Message
 };
 
 } // namespace net
-} // namespace olc
+} // namespace fw
