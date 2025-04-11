@@ -1,11 +1,28 @@
 #pragma once
 
 #include "NetCommon.h"
+#include "NetMessage.h"
 
-namespace olc
+namespace fw
 {
 namespace net
 {
+
+template <typename T> class Connection;
+
+template <typename T> struct OwnedMessage
+{
+    std::shared_ptr<Connection<T>> remote{ nullptr };
+    Message<T> msg;
+
+    // Again, a friendly string maker
+    friend std::ostream& operator<<(std::ostream& os, const OwnedMessage<T>& msg)
+    {
+        os << msg.msg;
+        return os;
+    }
+};
+
 template <typename T> class TsQueue
 {
   public:
@@ -31,14 +48,20 @@ template <typename T> class TsQueue
     void push_front(const T& item)
     {
         std::scoped_lock lock{ mux_queue_ };
-        queue.emplace_front(std::move(item));
+        queue_.emplace_front(std::move(item));
     }
 
     // Adds an item to back of Queue
     void push_back(const T& item)
     {
         std::scoped_lock lock{ mux_queue_ };
-        queue.emplace_back(std::move(item));
+        queue_.emplace_back(std::move(item));
+    }
+
+    bool empty()
+    {
+        std::scoped_lock lock(mux_queue_);
+        return queue_.empty();
     }
 
     // Returns number of items in Queue
@@ -59,8 +82,8 @@ template <typename T> class TsQueue
     T pop_front()
     {
         std::scoped_lock lock{ mux_queue_ };
-        auto t{ std::move(queue.front()) };
-        queue.pop_front();
+        auto t{ std::move(queue_.front()) };
+        queue_.pop_front();
         return t;
     }
 
@@ -68,30 +91,14 @@ template <typename T> class TsQueue
     T pop_back()
     {
         std::scoped_lock lock{ mux_queue_ };
-        auto t{ std::move(queue.front()) };
-        queue.pop_back();
+        auto t{ std::move(queue_.front()) };
+        queue_.pop_back();
         return t;
     }
-
-    template <typename T> class Connection;
-
-    template <typename T> struct OwnedMessage
-    {
-        std::shared_ptr<Connection<T>> remote{ nullptr };
-        Message<T> msg;
-
-        // Again, a friendly string maker
-        friend std::ostream& operator<<(std::ostream& os, const OwnedMessage<T>& msg)
-        {
-            os << msg.msg;
-            return os;
-        }
-    };
-
 
   protected:
     std::mutex mux_queue_;
     std::deque<T> queue_;
 };
 } // namespace net
-} // namespace olc
+} // namespace fw
