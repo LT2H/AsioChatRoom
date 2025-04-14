@@ -3,7 +3,7 @@
 #include "NetConnection.h"
 #include "NetTsQueue.h"
 #include "NetMessage.h"
-#include "NetCommon.h"
+#include "asio/ip/tcp.hpp"
 
 #include <string_view>
 
@@ -14,9 +14,7 @@ namespace net
 template <typename T> class ClientInterface
 {
   public:
-    ClientInterface() : socket_{ context_ }
-    { // Initialise the socket with the io context, so it can do stuff
-    }
+    ClientInterface() {}
 
     virtual ~ClientInterface()
     {
@@ -29,25 +27,36 @@ template <typename T> class ClientInterface
     {
         try
         {
-            // Create connection
-            connection_ = std::make_unique<Connection<T>>(); // TODO
 
             // Resolve hostname/ip-address into tangiable physical address
             asio::ip::tcp::resolver resolver{ context_ };
-            asio::ip::tcp::resolver::results_type endpoints =
-                resolver.resolve(host, std::to_string(port));
+            asio::ip::tcp::resolver::results_type endpoints{ resolver.resolve(
+                host, std::to_string(port)) };
+
+            // Create connection
+            connection_ =
+                std::make_unique<Connection<T>>(Connection<T>::Owner::client,
+                                                context_,
+                                                asio::ip::tcp::socket(context_),
+                                                messages_in_);
 
             // Tell the connection object tp connect to server
             connection_->connect_to_server(endpoints);
 
             // Start context thread
-            thr_context_ = std::thread([this] { context_.run(); });
+            thr_context_ = std::thread([this] {
+                std::cout << "[Client] IO context thread started\n";
+                context_.run();
+                std::cout << "[Client] IO context thread ended\n"; // <-- This will print when context.run() exits
+            });
+            
         }
         catch (std::exception& e)
         {
             std::cerr << "Client Exception: " << e.what() << "\n";
+            return false;
         }
-        return false;
+        return true;
     }
 
     // Disconnect from server
@@ -56,17 +65,17 @@ template <typename T> class ClientInterface
         if (is_connected())
         {
             connection_->disconnect();
-
-            // Either way, we're also done with the asio context...
-            context_.stop();
-            //...and its thread
-            if (thr_context_.joinable())
-            {
-                thr_context_.join();
-            }
-
-            connection_.release();
         }
+
+        // Either way, we're also done with the asio context...
+        context_.stop();
+        //...and its thread
+        if (thr_context_.joinable())
+        {
+            thr_context_.join();
+        }
+
+        connection_.release();
     }
 
     // Check if client is actually connected to a server
@@ -78,8 +87,10 @@ template <typename T> class ClientInterface
             return false;
     }
 
-    void send(const Message<T>& msg) {
-        if (is_connected()) {
+    void send(const Message<T>& msg)
+    {
+        if (is_connected())
+        {
             connection_->send(msg);
         }
     }
@@ -93,9 +104,6 @@ template <typename T> class ClientInterface
 
     //...but needs a thread of its own to execute its work commands
     std::thread thr_context_;
-
-    // This is the hardware socket that is connected to the server
-    asio::ip::tcp::socket socket_;
 
     // The client has a single instance of a "connection object", which handles
     // data transfer
