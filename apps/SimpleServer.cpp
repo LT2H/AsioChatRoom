@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 
-enum class CustomeMsgTypes : uint32_t
+enum class CustomMsgTypes : uint32_t
 {
     ServerAccept,
     ServerDeny,
@@ -12,37 +12,45 @@ enum class CustomeMsgTypes : uint32_t
     ServerMessage,
 };
 
-class CustomServer : public fw::net::ServerInterface<CustomeMsgTypes>
+class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
 {
   public:
-    CustomServer(uint16_t port) : fw::net::ServerInterface<CustomeMsgTypes>{ port }
-    {
-    }
+    CustomServer(uint16_t port) : fw::net::ServerInterface<CustomMsgTypes>{ port } {}
 
   protected:
     virtual bool
-    on_client_connect(std::shared_ptr<fw::net::Connection<CustomeMsgTypes>> client)
+    on_client_connect(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client)
     {
         return true;
     }
 
-    virtual void on_client_disconnect(
-        std::shared_ptr<fw::net::Connection<CustomeMsgTypes>> client)
+    virtual void
+    on_client_disconnect(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client)
     {
     }
 
     virtual void
-    on_message(std::shared_ptr<fw::net::Connection<CustomeMsgTypes>> client,
-               fw::net::Message<CustomeMsgTypes> msg)
+    on_message(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client,
+               fw::net::Message<CustomMsgTypes> msg)
     {
+        switch (msg.header.id)
+        {
+        case CustomMsgTypes::ServerPing:
+        {
+            std::cout << "[" << client->id() << "]: Server Ping\n";
+
+            client->send(msg);
+        }
+        }
     }
 };
 
-int main(){
-    CustomServer server{60000};
+int main()
+{
+    CustomServer server{ 60000 };
     server.start();
 
-    while(true)
+    while (true)
     {
         server.update();
     }
