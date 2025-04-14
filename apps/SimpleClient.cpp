@@ -4,18 +4,28 @@
 
 enum class CustomMsgTypes : uint32_t
 {
-    FireBullet,
-    MovePlayer
+    ServerAccept,
+    ServerDeny,
+    ServerPing,
+    MessageAll,
+    ServerMessage,
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 {
   public:
-    bool fire_bullet(float x, float y)
+    void ping_server()
     {
         fw::net::Message<CustomMsgTypes> msg;
-        msg.header.id = CustomMsgTypes::FireBullet;
-        msg << x << y;
+        msg.header.id = CustomMsgTypes::ServerPing;
+
+        // Caution with this
+        std::chrono::system_clock::time_point time_now{
+            std::chrono::system_clock::now()
+        };
+
+        msg << time_now;
+
         send(msg);
     }
 };
@@ -46,8 +56,74 @@ int main()
     // msg >> d >> c >> b >> a;
 
     CustomClient client;
-    client.connect("community.onelonecoder.com", 60000);
-    client.fire_bullet(0.5f, 0.7f);
+    client.connect("127.0.0.1", 60000);
+
+    std::array keys{ false, false, false };
+    std::array old_keys{ false, false, false };
+
+    bool is_quit{ false };
+    while (!is_quit)
+    {
+        if (GetForegroundWindow() == GetConsoleWindow())
+        {
+            keys[0] = GetAsyncKeyState('1') & 0x8000;
+            keys[1] = GetAsyncKeyState('2') & 0x8000;
+            keys[2] = GetAsyncKeyState('3') & 0x8000;
+        }
+
+        if (keys[0] && !old_keys[0])
+        {
+            client.ping_server();
+        }
+
+        if (keys[2] && !old_keys[2])
+        {
+            is_quit = true;
+        }
+
+        for (int i{ 0 }; i < 3; ++i)
+        {
+            old_keys[i] = keys[i];
+        }
+
+        if (client.is_connected())
+        {
+            std::cout << "Client is connected\n";
+            if (!client.incoming().empty())
+            {
+                auto msg{ client.incoming().pop_front().msg };
+                switch (msg.header.id)
+                {
+                case CustomMsgTypes::ServerAccept:
+                {
+                    // Server has responded to a ping request
+                    std::cout << "Server Accepted Connection\n";
+                }
+                break;
+
+                case CustomMsgTypes::ServerPing:
+                {
+                    std::chrono::system_clock::time_point time_now{
+                        std::chrono::system_clock::now()
+                    };
+                    std::chrono::system_clock::time_point time_then;
+                    msg >> time_then;
+
+                    std::cout << "Ping: "
+                              << std::chrono::duration<double>(time_now - time_then)
+                                     .count()
+                              << "\n";
+                }
+                break;
+                }
+            }
+        }
+        else
+        {
+            std::cout << "Server Down\n";
+            is_quit = true;
+        }
+    }
 
     return 0;
 }
