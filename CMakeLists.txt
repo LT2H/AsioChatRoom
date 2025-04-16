@@ -15,7 +15,7 @@ include(FetchContent)
 # Asio library
 FetchContent_Declare(
     asio
-    URL https://sourceforge.net/projects/asio/files/asio/1.30.2%20%28Stable%29/asio-1.30.2.tar.gz/download
+    URL https://downloads.sourceforge.net/project/asio/asio/1.30.2%20%28Stable%29/asio-1.30.2.tar.gz
     URL_HASH SHA256=12e7bb4dada8bc1191de9d550a59ee658ce4e645ffc97c911c099ab4e8699d55
 )
 FetchContent_MakeAvailable(asio)
