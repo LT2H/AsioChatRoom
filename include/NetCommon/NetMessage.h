@@ -61,7 +61,7 @@ struct Message
     {
         // Check that the type of the data being pushed is trivially copyable
         static_assert(std::is_standard_layout<DataType>::value,
-                      "Data is too complex to be pushed into vector");
+                      "Data is too complex to be pulled from vector");
 
         // Cache the location towards the end of the vector where the pulled data
         // starts
