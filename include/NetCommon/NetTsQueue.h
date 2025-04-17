@@ -91,7 +91,7 @@ template <typename T> class TsQueue
     T pop_back()
     {
         std::scoped_lock lock{ mux_queue_ };
-        auto t{ std::move(queue_.front()) };
+        auto t{ std::move(queue_.back()) };
         queue_.pop_back();
         return t;
     }

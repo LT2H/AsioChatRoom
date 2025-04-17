@@ -14,14 +14,13 @@ template <typename T> struct MessageHeader
     uint32_t size{ 0 }; // Size of the whole message
 };
 
-template <typename T>
-struct Message
+template <typename T> struct Message
 {
-    MessageHeader<T> header {};
+    MessageHeader<T> header{};
     std::vector<uint8_t> body;
 
     // returns the size of entire message packet in bytes
-    size_t size() const { return sizeof(MessageHeader<T>) + body.size(); }
+    size_t size() const { return body.size(); }
 
     // Override for std::cout compatibility - produces friendly description of
     // message
@@ -48,7 +47,6 @@ struct Message
         // Physically copy the data into the newly allocated vector space
         std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
 
-
         // Recalculate the message size
         msg.header.size = msg.size();
 
@@ -61,7 +59,7 @@ struct Message
     {
         // Check that the type of the data being pushed is trivially copyable
         static_assert(std::is_standard_layout<DataType>::value,
-                      "Data is too complex to be pushed into vector");
+                      "Data is too complex to be pulled from vector");
 
         // Cache the location towards the end of the vector where the pulled data
         // starts
@@ -72,6 +70,9 @@ struct Message
 
         // Shrink the vector to remove the read bytes, and reset end pos
         msg.body.resize(i);
+
+        // Recalculate the message size
+        msg.header.size = msg.size();
 
         // Return the target message so it can be chained
         return msg;

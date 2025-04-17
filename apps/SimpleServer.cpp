@@ -6,10 +6,10 @@
 enum class CustomMsgTypes : uint32_t
 {
     ServerAccept,
-    ServerDeny,
-    ServerPing,
-    MessageAll,
-    ServerMessage,
+	ServerDeny,
+	ServerPing,
+	MessageAll,
+	ServerMessage,
 };
 
 class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
@@ -31,7 +31,7 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
 
     virtual void
     on_message(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client,
-               fw::net::Message<CustomMsgTypes> msg)
+               fw::net::Message<CustomMsgTypes>& msg)
     {
         switch (msg.header.id)
         {
@@ -39,8 +39,10 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         {
             std::cout << "[" << client->id() << "]: Server Ping\n";
 
+            // Simply bounce message back to client
             client->send(msg);
         }
+        break;
         }
     }
 };

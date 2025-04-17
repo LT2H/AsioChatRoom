@@ -55,7 +55,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
         }
     }
 
-    bool connect_to_server(const asio::ip::tcp::resolver::results_type& endpoints)
+    void connect_to_server(const asio::ip::tcp::resolver::results_type& endpoints)
     {
         // Only clients can connect to servers
         if (owner_type_ == Owner::client)
@@ -73,7 +73,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
                 });
         }
     }
-    bool disconnect()
+    void disconnect()
     {
         if (is_connected())
         {
@@ -95,7 +95,6 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
                        }; // we can assert whenever asio is already busy doing
                           // writing messages
                        messages_out_.push_back(msg);
-                       write_header();
                        if (!writing_message)
                        {
                            write_header(); //...or we need to restart that write
