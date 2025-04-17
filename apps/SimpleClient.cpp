@@ -1,14 +1,16 @@
+#include "NetCommon/NetMessage.h"
 #include <NetCommon/FwNet.h>
 
+#include <cstdint>
 #include <iostream>
 #include <windows.h>
 enum class CustomMsgTypes : uint32_t
 {
     ServerAccept,
-	ServerDeny,
-	ServerPing,
-	MessageAll,
-	ServerMessage,
+    ServerDeny,
+    ServerPing,
+    MessageAll,
+    ServerMessage,
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
@@ -29,12 +31,10 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         send(msg);
     }
 
-    void send_msg_to_server()
+    void message_all()
     {
         fw::net::Message<CustomMsgTypes> msg;
-        msg.header.id = CustomMsgTypes::ServerMessage;
-
-        msg << "OI SERVER";
+        msg.header.id = CustomMsgTypes::MessageAll;
 
         send(msg);
     }
@@ -68,8 +68,8 @@ int main()
     CustomClient client;
     client.connect("127.0.0.1", 60000);
 
-    std::array keys{ false, false, false, false};
-    std::array old_keys{ false, false, false,false };
+    std::array keys{ false, false, false, false };
+    std::array old_keys{ false, false, false, false };
 
     bool is_quit{ false };
     while (!is_quit)
@@ -87,8 +87,9 @@ int main()
             client.ping_server();
         }
 
-        if (keys[3] && !old_keys[3]) {
-            client.send_msg_to_server();
+        if (keys[3] && !old_keys[3])
+        {
+            client.message_all();
         }
 
         if (keys[2] && !old_keys[2])
@@ -108,6 +109,20 @@ int main()
                 auto msg{ client.incoming().pop_front().msg };
                 switch (msg.header.id)
                 {
+                case CustomMsgTypes::ServerAccept:
+                {
+                    std::cout << "Server Accepted Connection\n";
+                }
+                break;
+
+                case CustomMsgTypes::ServerMessage:
+                {
+                    uint32_t clientID{};
+                    msg >> clientID;
+                    std::cout << "Hello from []" << clientID << "]\n";
+                }
+                break;
+
                 case CustomMsgTypes::ServerPing:
                 {
                     std::chrono::system_clock::time_point time_now{
