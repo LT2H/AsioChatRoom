@@ -4,6 +4,7 @@
 #include "NetTsQueue.h"
 #include "NetMessage.h"
 #include "NetConnection.h"
+#include <memory>
 
 namespace fw
 {
@@ -39,7 +40,7 @@ template <typename T> class ServerInterface
             std::cerr << "[SERVER] Exception: " << e.what() << '\n';
             return false;
         }
-        
+
         std::cout << "[SERVER] Started!\n";
         return true;
     }
@@ -83,7 +84,7 @@ template <typename T> class ServerInterface
                         // Connection allowed, so add to container of new conns
                         connections_.push_back(std::move(new_conn));
 
-                        connections_.back()->connect_to_client(++client_id_counter_);
+                        connections_.back()->connect_to_client(this, ++client_id_counter_);
 
                         std::cout << "[" << connections_.back()->id()
                                   << "] Connection Approved\n";
@@ -156,8 +157,11 @@ template <typename T> class ServerInterface
         }
     }
 
-    void update(size_t max_messages = 65535)
+    void update(size_t max_messages = 65535, bool wait = false)
     {
+        if (wait)
+            messages_in_.wait();
+
         size_t message_count{ 0 };
         while (message_count < max_messages && !messages_in_.empty())
         {
@@ -184,6 +188,12 @@ template <typename T> class ServerInterface
     // Called when a message arrives
     virtual void on_message(std::shared_ptr<Connection<T>> client, Message<T>& msg)
     {
+    }
+
+  public:
+    // Called when a client is validated
+    virtual void on_client_validated(std::shared_ptr<Connection<T>> client) {
+
     }
 
   protected:

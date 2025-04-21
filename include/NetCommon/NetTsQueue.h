@@ -2,6 +2,8 @@
 
 #include "NetCommon.h"
 #include "NetMessage.h"
+#include <condition_variable>
+#include <mutex>
 
 namespace fw
 {
@@ -49,6 +51,9 @@ template <typename T> class TsQueue
     {
         std::scoped_lock lock{ mux_queue_ };
         queue_.emplace_front(std::move(item));
+
+        std::unique_lock<std::mutex> ul{ mux_blocking_ };
+        blocking_.notify_one(); // notify to wake up
     }
 
     // Adds an item to back of Queue
@@ -56,6 +61,9 @@ template <typename T> class TsQueue
     {
         std::scoped_lock lock{ mux_queue_ };
         queue_.emplace_back(std::move(item));
+
+        std::unique_lock<std::mutex> ul{ mux_blocking_ };
+        blocking_.notify_one(); // notify to wake up
     }
 
     bool empty()
@@ -96,9 +104,22 @@ template <typename T> class TsQueue
         return t;
     }
 
+    void wait()
+    {
+        while (empty())
+        {
+            std::unique_lock<std::mutex> ul(mux_blocking_);
+            blocking_.wait(ul); // wait until an item has been written to the queue,
+                                // without consuming cpu
+        }
+    }
+
   protected:
     std::mutex mux_queue_;
     std::deque<T> queue_;
+
+    std::condition_variable blocking_;
+    std::mutex mux_blocking_;
 };
 } // namespace net
 } // namespace fw

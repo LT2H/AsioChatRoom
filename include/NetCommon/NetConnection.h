@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NetConnection.h"
+#include "NetServer.h"
 #include "NetTsQueue.h"
 #include "NetMessage.h"
 #include "NetCommon.h"
@@ -11,14 +12,19 @@
 #include "asio/io_context.hpp"
 #include "asio/ip/tcp.hpp"
 #include "asio/post.hpp"
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <system_error>
 
 namespace fw
 {
 namespace net
 {
+// Forward declare
+template <typename T> class ServerInterface;
+
 template <typename T>
 class Connection : public std::enable_shared_from_this<Connection<T>>
 {
@@ -35,6 +41,23 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
           messages_in_{ message_in }
     {
         owner_type_ = parent;
+
+        // Construct validation check data
+        if (owner_type_ == Owner::server)
+        {
+            // Connection is Server -> Client, construct a random data for the client
+            // to transform and send back for validation
+            hand_shake_out_ = uint64_t(
+                std::chrono::system_clock::now().time_since_epoch().count());
+
+            hand_shake_check_ = scramble(hand_shake_out_);
+        }
+        else
+        {
+            // Connection is Client -> Server, so we have nothing to define
+            hand_shake_in_  = 0;
+            hand_shake_out_ = 0;
+        }
     }
 
     virtual ~Connection() {}
@@ -43,14 +66,23 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
 
   public:
     // For server only
-    void connect_to_client(uint32_t id = 0)
+    void connect_to_client(fw::net::ServerInterface<T>* server, uint32_t id = 0)
     {
         if (owner_type_ == Owner::server)
         {
             if (socket_.is_open())
             {
                 id_ = id;
-                read_header();
+                // was: read_header();
+
+                // A client has attempted to connect to the server, but we wish
+                // the client to 1st validate itself, so 1st write out the handshake
+                // data to be validated
+                write_validation();
+
+                // Next, issue a task to sit and wait asynchronously for precisely
+                // the validation data sent back from the client
+                read_validation(server);
             }
         }
     }
@@ -68,7 +100,10 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
                 {
                     if (!ec)
                     {
-                        read_header();
+                        // Was: read_header();
+                        // 1st thing server will do is send packet to be validated so
+                        // wait for that and respond
+                        read_validation();
                     }
                 });
         }
@@ -234,6 +269,85 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
         read_header();
     }
 
+    // "Encrypt" data
+    uint64_t scramble(uint64_t input)
+    {
+        uint64_t out{ input ^ 0xDEADBEEFC0DECAFE };
+        out = (out & 0xF0F0F0F0F0F0F0) >> 4 | (out & 0xF0F0F0F0F0F0F0) << 4;
+        return out ^ 0xC0DEFACE12345678;
+    }
+
+    // ASYNC - Used by both client and server to write validation packet
+    void write_validation()
+    {
+        asio::async_write(socket_,
+                          asio::buffer(&hand_shake_out_, sizeof(uint64_t)),
+                          [this](std::error_code ec, size_t lenght)
+                          {
+                              if (!ec)
+                              {
+                                  // Validation data sent, clients should sit and
+                                  // wait for a response (or a closure)
+                                  if (owner_type_ == Owner::client)
+                                  {
+                                      read_header();
+                                  }
+                              }
+                              else
+                              {
+                                  socket_.close();
+                              } 
+                          });
+    }
+
+    void read_validation(fw::net::ServerInterface<T>* server = nullptr)
+    {
+        asio::async_read(
+            socket_,
+            asio::buffer(&hand_shake_in_, sizeof(uint64_t)),
+            [this, server](std::error_code ec, size_t length)
+            {
+                if (!ec)
+                {
+                    if (owner_type_ == Owner::server)
+                    {
+                        // Client has provided valid solution, so allow it to connect
+                        if (hand_shake_in_ == hand_shake_check_)
+                        {
+                            std::cout << "Client validated" << std::endl;
+                            server->on_client_validated(this->shared_from_this());
+
+                            // Sit waiting to receive data now
+                            read_header();
+                        }
+
+                        else
+                        {
+                            // Client gave incorrect data, so disconnect
+                            std::cout << "Client disconnected (Fail Validation)"
+                                      << std::endl;
+                            socket_.close();
+                        }
+                    }
+                    else
+                    {
+                        // Connection is a client, so solve the puzzle
+                        hand_shake_out_ = scramble(hand_shake_in_);
+
+                        // write the result
+                        write_validation();
+                    }
+                }
+                else
+                {
+                    // Some failure occured
+                    std::cout << "Client Disconnected (read_validation)"
+                              << std::endl;
+                    socket_.close();
+                }
+            });
+    }
+
   protected:
     // Each connection has unique socket to a remote
     asio::ip::tcp::socket socket_;
@@ -254,6 +368,11 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
     // The "owner" decides how some of the connection behaves
     Owner owner_type_{ Owner::server };
     uint32_t id_{ 0 };
+
+    // Handshake validation
+    uint64_t hand_shake_out_{ 0 };
+    uint64_t hand_shake_in_{ 0 };
+    uint64_t hand_shake_check_{ 0 };
 };
 } // namespace net
 

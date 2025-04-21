@@ -84,7 +84,7 @@ int main()
 
     while (true)
     {
-        server.update();
+        server.update(65535, true);
     }
     return 0;
 }
