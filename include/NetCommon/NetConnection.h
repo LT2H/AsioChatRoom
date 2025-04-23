@@ -50,6 +50,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
             hand_shake_out_ = uint64_t(
                 std::chrono::system_clock::now().time_since_epoch().count());
 
+            // Pre-calculate the result for checking when the client responds
             hand_shake_check_ = scramble(hand_shake_out_);
         }
         else
