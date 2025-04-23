@@ -25,7 +25,7 @@ add_executable(SimpleClient SimpleClient.cpp)
 target_include_directories(SimpleClient PRIVATE ${asio_SOURCE_DIR}/include)
 
 target_compile_features(SimpleClient PRIVATE cxx_std_20)
-target_link_libraries(SimpleClient PRIVATE NetCommon ws2_32
+target_link_libraries(SimpleClient PRIVATE imgui_backend NetCommon ws2_32
     mswsock
     kernel32
     user32

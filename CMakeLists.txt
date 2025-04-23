@@ -21,6 +21,41 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(asio)
 # Adds asio
 
+# GLFW
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw
+    GIT_TAG        3.3.8  # or latest stable
+)
+FetchContent_MakeAvailable(glfw)
+
+# ImGui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui
+    GIT_TAG        master
+)
+FetchContent_MakeAvailable(imgui)
+
+# Create ImGui backend target
+add_library(imgui_backend
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui_backend PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+
+target_link_libraries(imgui_backend PUBLIC glfw OpenGL::GL)
+find_package(OpenGL REQUIRED)
+
 # The executable code is here
 add_subdirectory(apps)
 add_subdirectory(include)
