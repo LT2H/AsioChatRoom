@@ -27,6 +27,7 @@ template <typename T> class ClientInterface
     {
         try
         {
+            context_.restart(); // this allows reuse after .stop()
 
             // Resolve hostname/ip-address into tangiable physical address
             asio::ip::tcp::resolver resolver{ context_ };
@@ -79,7 +80,7 @@ template <typename T> class ClientInterface
     }
 
     // Check if client is actually connected to a server
-    bool is_connected()
+    bool is_connected() const
     {
         if (connection_)
             return connection_->is_connected();
