@@ -55,22 +55,32 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         {
             std::cout << "[" << client->id() << "]: Server Message\n";
 
-            std::array<char, 64> rep{};
-            std::array<char, 64> data{"I am server, msg back to you"};
+            std::array<char, fw::net::array_size> rep{};
+            std::array<char, fw::net::array_size> data{
+                "I am server, msg back to you"
+            };
             rep = data;
             msg << rep;
 
             client->send(msg);
         }
         break;
-        
+
         case CustomMsgTypes::MessageAll:
         {
             std::cout << "[" << client->id() << "]: Message All\n";
-            fw::net::Message<CustomMsgTypes> message{};
-            message.header.id = CustomMsgTypes::ServerMessage;
-            message << client->id();
-            message_all_clients(message, client);
+            fw::net::Message<CustomMsgTypes> sending_message{};
+            sending_message.header.id = CustomMsgTypes::ServerMessage;
+
+            std::array<char, fw::net::array_size> msg_content{};
+            msg >> msg_content;
+
+            // Must reverse the order
+            sending_message << msg_content;
+            sending_message << client->id();
+
+            // Send the message to all clients
+            message_all_clients(sending_message, client);
         }
         break;
         }
