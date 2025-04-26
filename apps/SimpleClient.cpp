@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <iostream>
 #include <windows.h>
+
 enum class CustomMsgTypes : uint32_t
 {
     ServerAccept,
@@ -42,8 +43,25 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         fw::net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::MessageAll;
 
+        msg << sending_msg_;
+
         send(msg);
     }
+
+    void set_sending_msg(const std::array<char, fw::net::array_size>& sending_msg)
+    {
+        sending_msg_ = sending_msg;
+    }
+
+    constexpr std::array<char, fw::net::array_size> get_sending_msg() const
+    {
+        return sending_msg_;
+    }
+
+  private:
+    std::vector<std::string> messages_;
+    std::vector<std::string> clients_list_;
+    std::array<char, fw::net::array_size> sending_msg_{};
 };
 
 void cleanup(GLFWwindow* window)
@@ -109,10 +127,24 @@ void handle_incoming_msg(CustomClient& client)
             case CustomMsgTypes::ServerMessage:
             {
                 uint32_t clientID{};
-                msg >> clientID;
-                std::cout << "Hello from []" << clientID << "]\n";
+                std::array<char, fw::net::array_size> msg_content{};
+
+                try
+                {
+                    msg >> clientID;
+                    msg >> msg_content;
+                }
+                catch (std::runtime_error e)
+                {
+                    std::cerr << e.what() << "\n";
+                }
+                
+                
+                std::cout << "[" << clientID << "] Said : " << msg_content.data()
+                          << "\n";
             }
             break;
+
             }
         }
     }
@@ -155,13 +187,45 @@ void render_ui(GLFWwindow* window, CustomClient& client)
     ImGui::Columns(2, nullptr, true);
 
     // --- Left panel: Chats ---
+    float available_height{ ImGui::GetContentRegionAvail().y };
+    float padding{ 20.0f };
+    available_height -= padding;
+
+    float top_heigth{ available_height * 0.90f };
+    float bottom_height{ available_height - top_heigth };
+
+    // Top Row (75% height)
     ImGui::Text("Chats");
-    ImGui::BeginChild("ChatsChild", ImVec2(0, 0), true);
-    // You can render your chat messages here
+    ImGui::BeginChild("ChatsListPanel", ImVec2(0, top_heigth), true);
+    // Your top content
+    ImGui::EndChild();
+
+    // Bottom Row (25% height)
+    ImGui::BeginChild("InputPanel", ImVec2(0, bottom_height), true);
+
+    ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Bottom padding
+    ImGui::Indent(40.0f);              // Left padding
+
+    ImGui::Text("Message");
+    ImGui::SameLine();
+
+    static std::array<char, fw::net::array_size> msg_content{};
+    ImGui::InputTextWithHint(
+        "##ChatInput", "Type something...", msg_content.data(), msg_content.size());
+    ImGui::SameLine();
+
+    if (ImGui::Button("Send"))
+    {
+        client.set_sending_msg(msg_content);
+        client.message_all();
+    }
+
+    ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Bottom padding
+
     ImGui::EndChild();
 
     ImGui::NextColumn();
-
+    // --- Left panel: Chats ---
 
     // --- Right panel: Clients ---
     ImGui::Text("Clients");
@@ -169,11 +233,7 @@ void render_ui(GLFWwindow* window, CustomClient& client)
     // You can list your clients here
     ImGui::EndChild();
 
-    // Disconnect button
-    if (ImGui::Button("Disconnect All", ImVec2(-1, 0)))
-    {
-        // Handle disconnect all
-    }
+    // --- Right panel: Clients ---
 }
 
 void render_loop(GLFWwindow* window, CustomClient& client)
@@ -195,7 +255,8 @@ void render_loop(GLFWwindow* window, CustomClient& client)
                      nullptr,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_MenuBar);
+                         ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar |
+                         ImGuiWindowFlags_NoScrollWithMouse);
 
         render_ui(window, client);
 
