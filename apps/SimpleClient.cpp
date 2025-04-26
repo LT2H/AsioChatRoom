@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 
 #include <cstdint>
 #include <iostream>
@@ -117,6 +118,64 @@ void handle_incoming_msg(CustomClient& client)
     }
 }
 
+void render_ui(GLFWwindow* window, CustomClient& client)
+{
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Options"))
+        {
+            if (ImGui::MenuItem("Connect"))
+            {
+                if (!client.is_connected())
+                {
+                    client.connect("127.0.0.1", 60000);
+                }
+            }
+
+            if (ImGui::MenuItem("Ping"))
+            {
+                client.ping_server();
+            }
+            if (ImGui::MenuItem("Disconnect"))
+            {
+                client.disconnect();
+            }
+            if (ImGui::MenuItem("Quit"))
+            {
+                glfwSetWindowShouldClose(window, true);
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    // Split into two columns
+    ImGui::Columns(2, nullptr, true);
+
+    // --- Left panel: Chats ---
+    ImGui::Text("Chats");
+    ImGui::BeginChild("ChatsChild", ImVec2(0, 0), true);
+    // You can render your chat messages here
+    ImGui::EndChild();
+
+    ImGui::NextColumn();
+
+
+    // --- Right panel: Clients ---
+    ImGui::Text("Clients");
+    ImGui::BeginChild("ClientsChild", ImVec2(0, -30), true);
+    // You can list your clients here
+    ImGui::EndChild();
+
+    // Disconnect button
+    if (ImGui::Button("Disconnect All", ImVec2(-1, 0)))
+    {
+        // Handle disconnect all
+    }
+}
+
 void render_loop(GLFWwindow* window, CustomClient& client)
 {
     while (!glfwWindowShouldClose(window))
@@ -127,41 +186,18 @@ void render_loop(GLFWwindow* window, CustomClient& client)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Hello, ImGui!", nullptr, ImGuiWindowFlags_MenuBar);
-        ImGui::Text("This is a simple ImGui example.");
-
         handle_incoming_msg(client);
 
-        if (ImGui::Button("Exit"))
-        {
-            glfwSetWindowShouldClose(window, true);
-        }
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("Options"))
-            {
-                if (ImGui::MenuItem("Connect"))
-                {
-                    if (!client.is_connected())
-                    {
-                        client.connect("127.0.0.1", 60000);
-                    }
-                }
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 
-                if (ImGui::MenuItem("Ping"))
-                {
-                    client.ping_server();
-                }
-                if (ImGui::MenuItem("Disconnect"))
-                {
-                    client.disconnect();
-                }
-                ImGui::EndMenu();
-            }
+        ImGui::Begin("Main Window",
+                     nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+                         ImGuiWindowFlags_MenuBar);
 
-            ImGui::EndMenuBar();
-        }
-
+        render_ui(window, client);
 
         ImGui::End();
 
@@ -169,6 +205,7 @@ void render_loop(GLFWwindow* window, CustomClient& client)
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
     }
 }
