@@ -20,7 +20,7 @@ target_link_libraries(app PRIVATE NetCommon ws2_32
 
 
 
-add_executable(SimpleClient SimpleClient.cpp)
+add_executable(SimpleClient Client/SimpleClient.cpp)
 
 target_include_directories(SimpleClient PRIVATE ${asio_SOURCE_DIR}/include)
 
@@ -41,7 +41,7 @@ target_link_libraries(SimpleClient PRIVATE imgui_backend NetCommon ws2_32
 
 
 
-add_executable(SimpleServer SimpleServer.cpp)
+add_executable(SimpleServer Server/SimpleServer.cpp)
 
 target_include_directories(SimpleServer PRIVATE ${asio_SOURCE_DIR}/include)
 

@@ -1,3 +1,5 @@
+#include "Ui/Ui.h"
+
 #include "NetCommon/NetMessage.h"
 #include <NetCommon/FwNet.h>
 
@@ -18,10 +20,6 @@ enum class CustomMsgTypes : uint32_t
     ServerPing,
     MessageAll,
     ServerMessage,
-};
-
-class ClientUi
-{
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
@@ -55,7 +53,7 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
     void set_sending_msg(std::array<char, fw::net::array_size>&& sending_msg)
     {
         sending_msg_ = sending_msg;
-        messages_.push_back(sending_msg_);
+        ui.append_msg(sending_msg_);
     }
 
     constexpr std::array<char, fw::net::array_size> get_sending_msg() const
@@ -63,19 +61,10 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         return sending_msg_;
     }
 
-    constexpr std::vector<std::array<char, fw::net::array_size>> get_messages() const
-    {
-        return messages_;
-    }
-
-    void append(const std::array<char, fw::net::array_size>& message)
-    {
-        messages_.push_back(message);
-    }
+  public:
+    Ui ui;
 
   private:
-    std::vector<std::array<char, fw::net::array_size>> messages_;
-    std::vector<std::string> clients_list_;
     std::array<char, fw::net::array_size> sending_msg_{};
 };
 
@@ -158,7 +147,7 @@ void handle_incoming_msg(CustomClient& client)
                 std::cout << "[" << clientID << "] Said : " << msg_content.data()
                           << "\n";
 
-                client.append(msg_content);
+                client.ui.append_msg(msg_content);
             }
             break;
             }
@@ -214,7 +203,7 @@ void render_ui(GLFWwindow* window, CustomClient& client)
     ImGui::Text("Chats");
     ImGui::BeginChild("ChatsListPanel", ImVec2(0, top_heigth), true);
 
-    for (const auto& msg : client.get_messages())
+    for (const auto& msg : client.ui.get_messages())
     {
         ImGui::Text("%s", msg.data());
     }
