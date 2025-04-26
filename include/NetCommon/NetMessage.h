@@ -17,8 +17,8 @@ template <typename T> struct MessageHeader
 template <typename T> struct Message
 {
     MessageHeader<T> header{};
-    std::vector<uint8_t> body;
 
+    std::vector<uint8_t> body;
     // returns the size of entire message packet in bytes
     size_t size() const { return body.size(); }
 
@@ -60,6 +60,9 @@ template <typename T> struct Message
         // Check that the type of the data being pushed is trivially copyable
         static_assert(std::is_standard_layout<DataType>::value,
                       "Data is too complex to be pulled from vector");
+
+        if (msg.body.size() < sizeof(DataType))
+            throw std::runtime_error("Not enough data in message to extract");
 
         // Cache the location towards the end of the vector where the pulled data
         // starts
