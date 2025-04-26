@@ -20,6 +20,10 @@ enum class CustomMsgTypes : uint32_t
     ServerMessage,
 };
 
+class ClientUi
+{
+};
+
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 {
   public:
@@ -48,9 +52,10 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         send(msg);
     }
 
-    void set_sending_msg(const std::array<char, fw::net::array_size>& sending_msg)
+    void set_sending_msg(std::array<char, fw::net::array_size>&& sending_msg)
     {
         sending_msg_ = sending_msg;
+        messages_.push_back(sending_msg_);
     }
 
     constexpr std::array<char, fw::net::array_size> get_sending_msg() const
@@ -58,8 +63,18 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         return sending_msg_;
     }
 
+    constexpr std::vector<std::array<char, fw::net::array_size>> get_messages() const
+    {
+        return messages_;
+    }
+
+    void append(const std::array<char, fw::net::array_size>& message)
+    {
+        messages_.push_back(message);
+    }
+
   private:
-    std::vector<std::string> messages_;
+    std::vector<std::array<char, fw::net::array_size>> messages_;
     std::vector<std::string> clients_list_;
     std::array<char, fw::net::array_size> sending_msg_{};
 };
@@ -138,13 +153,14 @@ void handle_incoming_msg(CustomClient& client)
                 {
                     std::cerr << e.what() << "\n";
                 }
-                
-                
+
+
                 std::cout << "[" << clientID << "] Said : " << msg_content.data()
                           << "\n";
+
+                client.append(msg_content);
             }
             break;
-
             }
         }
     }
@@ -197,6 +213,12 @@ void render_ui(GLFWwindow* window, CustomClient& client)
     // Top Row (75% height)
     ImGui::Text("Chats");
     ImGui::BeginChild("ChatsListPanel", ImVec2(0, top_heigth), true);
+
+    for (const auto& msg : client.get_messages())
+    {
+        ImGui::Text("%s", msg.data());
+    }
+
     // Your top content
     ImGui::EndChild();
 
@@ -216,7 +238,7 @@ void render_ui(GLFWwindow* window, CustomClient& client)
 
     if (ImGui::Button("Send"))
     {
-        client.set_sending_msg(msg_content);
+        client.set_sending_msg(std::move(msg_content));
         client.message_all();
     }
 
