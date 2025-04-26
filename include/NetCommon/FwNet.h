@@ -6,3 +6,10 @@
 #include "NetClient.h"
 #include "NetServer.h"
 #include "NetConnection.h"
+#include <cstddef>
+
+namespace fw{
+    namespace net{
+        constexpr size_t array_size{64};
+    }
+}
