@@ -11,6 +11,7 @@
 #include <chrono>
 #include <cstdint>
 #include <array>
+#include <unordered_map>
 
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0A00

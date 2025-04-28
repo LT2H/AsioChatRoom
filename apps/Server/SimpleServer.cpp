@@ -2,10 +2,13 @@
 #include <NetCommon/FwNet.h>
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <minwindef.h>
+#include <unordered_map>
+#include <vector>
 
 enum class CustomMsgTypes : uint32_t
 {
@@ -14,6 +17,7 @@ enum class CustomMsgTypes : uint32_t
     ServerPing,
     MessageAll,
     ServerMessage,
+    NewClientConnected,
 };
 
 class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
@@ -42,6 +46,18 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
     {
         switch (msg.header.id)
         {
+        case CustomMsgTypes::NewClientConnected:
+        {
+            std::cout << "[" << client->id() << "]: New Client Connected\n";
+            
+            fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
+            msg_for_other_clients.header.id = CustomMsgTypes::NewClientConnected;
+            msg_for_other_clients << client->id();
+
+            message_all_clients(msg_for_other_clients, client);
+        }
+        break;
+
         case CustomMsgTypes::ServerPing:
         {
             std::cout << "[" << client->id() << "]: Server Ping\n";
@@ -85,6 +101,11 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         break;
         }
     }
+
+  private:
+    std::unordered_map<uint32_t,
+                       std::shared_ptr<fw::net::Connection<CustomMsgTypes>>>
+        clients_{};
 };
 
 int main()

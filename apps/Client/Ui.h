@@ -5,6 +5,7 @@
 #include <NetCommon/FwNet.h>
 
 #include <GLFW/glfw3.h> // Include glfw3.h after OpenGL32.lib
+#include <array>
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -118,7 +119,7 @@ class Ui
         // Begin Popup
         if (ImGui::BeginPopupModal("SetClientInfo"))
         {
-            static std::string client_info{ "(unknown)" };
+            static std::array<char, fw::net::array_size> client_info{ "(unknown)" };
 
             ImGui::Text("Choose a name:");
             ImGui::InputTextWithHint("##ClientInfoInput",
@@ -200,9 +201,9 @@ class Ui
         // --- Right panel: Clients ---
         ImGui::Text("Clients");
         ImGui::BeginChild("ClientsChild", ImVec2(0, -30), true);
-        for (const auto& c : client.other_clients_list())
+        for (const auto& id : client.other_clients_list())
         {
-            ImGui::Text("%s", c.name.c_str());
+            ImGui::Text("Client (%u)", id);
         }
         ImGui::EndChild();
 

@@ -3,6 +3,7 @@
 #include "NetCommon/NetMessage.h"
 #include <NetCommon/FwNet.h>
 
+#include <array>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -15,11 +16,16 @@ enum class CustomMsgTypes : uint32_t
     ServerPing,
     MessageAll,
     ServerMessage,
+    NewClientConnected
 };
 
 struct ClientInfo
 {
-    std::string name{ "(unknown)" };
+    std::array<char, fw::net::array_size> name{ "(unknown)" };
+
+    std::string to_string() const {
+        return std::string{name.data()};
+    }
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
@@ -83,6 +89,23 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                 case CustomMsgTypes::ServerAccept:
                 {
                     std::cout << "Server Accepted Connection\n";
+
+                    fw::net::Message<CustomMsgTypes> broadcasting_msg{};
+                    broadcasting_msg.header.id = CustomMsgTypes::NewClientConnected;
+
+                    send(broadcasting_msg);
+                }
+                break;
+
+                case CustomMsgTypes::NewClientConnected:
+                {
+                    std::cout << "New friend!\n";
+
+                    uint32_t clientID{};
+
+                    msg >> clientID;
+
+                    other_clients_list_.push_back(clientID);
                 }
                 break;
 
@@ -132,21 +155,19 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
     void set_name(std::string_view name) { name_ = name; }
 
-    constexpr std::vector<ClientInfo> other_clients_list() const
+    constexpr std::vector<uint32_t> other_clients_list() const
     {
         return other_clients_list_;
     }
 
     constexpr ClientInfo info() const { return info_; }
 
-    void set_info(std::string_view info) {
-        info_.name = info;
-    }
+    void set_info(std::array<char, fw::net::array_size> info) { info_.name = info; }
 
   private:
     ClientInfo info_{};
     std::array<char, fw::net::array_size> sending_msg_{};
     std::vector<std::array<char, fw::net::array_size>> messages_;
-    std::vector<ClientInfo> other_clients_list_{};
+    std::vector<uint32_t> other_clients_list_{};
     std::string name_{ "(unknown)" };
 };
