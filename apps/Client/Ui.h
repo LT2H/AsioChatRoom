@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NetCommon/NetMessage.h"
 #include "SimpleClient.h"
 
 #include <NetCommon/FwNet.h>
@@ -89,32 +90,19 @@ class Ui
         {
             ImGui::OpenPopup("SetClientInfo");
         }
-        // if (ImGui::BeginMenu("Options"))
-        // {
-        //     if (ImGui::MenuItem("Connect"))
-        //     {
-        //         std::cout << "Opening popup...\n"; // Debug log
-        //         ImGui::OpenPopup("SetClientInfo");
-        //     }
 
-        //     if (ImGui::MenuItem("Ping"))
-        //     {
-        //         client.ping_server();
-        //     }
-        //     if (ImGui::MenuItem("Disconnect"))
-        //     {
-        //         client.disconnect();
-        //     }
-        //     if (ImGui::MenuItem("Quit"))
-        //     {
-        //         glfwSetWindowShouldClose(window_, true);
-        //     }
+        if (ImGui::Button("Ping"))
+        {
+            client.ping_server();
+        }
 
-        //     ImGui::EndMenu();
-        // }
-
-        //     ImGui::EndMenuBar();
-        // }
+        if (ImGui::Button("Disconnect"))
+        {
+            fw::net::Message<CustomMsgTypes> disconnect_msg{};
+            disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
+            client.send(disconnect_msg);
+            client.disconnect();
+        }
 
         // Begin Popup
         if (ImGui::BeginPopupModal("SetClientInfo"))
