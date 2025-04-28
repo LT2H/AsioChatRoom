@@ -20,12 +20,12 @@ target_link_libraries(app PRIVATE NetCommon ws2_32
 
 
 
-add_executable(SimpleClient Client/SimpleClient.cpp)
+add_executable(ClientApp Client/ClientApp.cpp)
 
-target_include_directories(SimpleClient PRIVATE ${asio_SOURCE_DIR}/include)
+target_include_directories(ClientApp PRIVATE ${asio_SOURCE_DIR}/include)
 
-target_compile_features(SimpleClient PRIVATE cxx_std_20)
-target_link_libraries(SimpleClient PRIVATE imgui_backend NetCommon ws2_32
+target_compile_features(ClientApp PRIVATE cxx_std_20)
+target_link_libraries(ClientApp PRIVATE imgui_backend NetCommon ws2_32
     mswsock
     kernel32
     user32
