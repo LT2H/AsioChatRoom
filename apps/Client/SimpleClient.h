@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <string>
 #include <windows.h>
 
 enum class CustomMsgTypes : uint32_t
@@ -14,6 +15,11 @@ enum class CustomMsgTypes : uint32_t
     ServerPing,
     MessageAll,
     ServerMessage,
+};
+
+struct ClientInfo
+{
+    std::string name{ "(unknown)" };
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
@@ -50,12 +56,12 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         append_msg(sending_msg_);
     }
 
-    constexpr std::array<char, fw::net::array_size> get_sending_msg() const
+    constexpr std::array<char, fw::net::array_size> sending_msg() const
     {
         return sending_msg_;
     }
 
-    constexpr std::vector<std::array<char, fw::net::array_size>> get_messages() const
+    constexpr std::vector<std::array<char, fw::net::array_size>> messages() const
     {
         return messages_;
     }
@@ -122,8 +128,25 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         }
     }
 
+    constexpr std::string name() const { return name_; }
+
+    void set_name(std::string_view name) { name_ = name; }
+
+    constexpr std::vector<ClientInfo> other_clients_list() const
+    {
+        return other_clients_list_;
+    }
+
+    constexpr ClientInfo info() const { return info_; }
+
+    void set_info(std::string_view info) {
+        info_.name = info;
+    }
+
   private:
+    ClientInfo info_{};
     std::array<char, fw::net::array_size> sending_msg_{};
     std::vector<std::array<char, fw::net::array_size>> messages_;
-    std::vector<std::string> other_clients_list_;
+    std::vector<ClientInfo> other_clients_list_{};
+    std::string name_{ "(unknown)" };
 };
