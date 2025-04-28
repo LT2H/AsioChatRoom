@@ -16,21 +16,27 @@ enum class CustomMsgTypes : uint32_t
     ServerPing,
     MessageAll,
     ServerMessage,
-    NewClientConnected
+    NewClientConnected,
+    ClientDisconnected
 };
 
 struct ClientInfo
 {
     std::array<char, fw::net::array_size> name{ "(unknown)" };
 
-    std::string to_string() const {
-        return std::string{name.data()};
-    }
+    std::string to_string() const { return std::string{ name.data() }; }
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 {
   public:
+    ~CustomClient() override
+    {
+        fw::net::Message<CustomMsgTypes> disconnect_msg{};
+        disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
+        send(disconnect_msg);
+        disconnect();
+    }
     void ping_server()
     {
         fw::net::Message<CustomMsgTypes> msg;
@@ -89,7 +95,7 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                 case CustomMsgTypes::ServerAccept:
                 {
                     std::cout << "Server Accepted Connection\n";
-
+                    
                     fw::net::Message<CustomMsgTypes> broadcasting_msg{};
                     broadcasting_msg.header.id = CustomMsgTypes::NewClientConnected;
 
@@ -99,13 +105,25 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
                 case CustomMsgTypes::NewClientConnected:
                 {
-                    std::cout << "New friend!\n";
+                    uint32_t client_id{};
 
-                    uint32_t clientID{};
+                    msg >> client_id;
 
-                    msg >> clientID;
+                    other_clients_list_.push_back(client_id);
+                }
+                break;
 
-                    other_clients_list_.push_back(clientID);
+                case CustomMsgTypes::ClientDisconnected:
+                {
+                    uint32_t client_id_to_remove{};
+
+                    msg >> client_id_to_remove;
+
+                    other_clients_list_.erase(
+                        std::remove(other_clients_list_.begin(),
+                                    other_clients_list_.end(),
+                                    client_id_to_remove),
+                        other_clients_list_.end());
                 }
                 break;
 
@@ -166,6 +184,7 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
   private:
     ClientInfo info_{};
+
     std::array<char, fw::net::array_size> sending_msg_{};
     std::vector<std::array<char, fw::net::array_size>> messages_;
     std::vector<uint32_t> other_clients_list_{};
