@@ -32,6 +32,20 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         fw::net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::ServerAccept;
         client->send(msg);
+
+        //  The new client should also know about all previous clients
+        for (auto& [id, existing_client] : clients_)
+        {
+            if (existing_client != client)
+            {
+                fw::net::Message<CustomMsgTypes> msg_about_existing_client;
+                msg_about_existing_client.header.id =
+                    CustomMsgTypes::NewClientConnected;
+                msg_about_existing_client << id;
+                client->send(msg_about_existing_client);
+            }
+        }
+
         return true;
     }
 
@@ -49,7 +63,10 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         case CustomMsgTypes::NewClientConnected:
         {
             std::cout << "[" << client->id() << "]: New Client Connected\n";
-            
+
+            // Track this client
+            clients_[client->id()] = client;
+
             fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
             msg_for_other_clients.header.id = CustomMsgTypes::NewClientConnected;
             msg_for_other_clients << client->id();
