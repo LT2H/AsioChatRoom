@@ -82,35 +82,67 @@ class Ui
   private:
     void render_ui(CustomClient& client)
     {
-        if (ImGui::BeginMenuBar())
+        // if (ImGui::BeginMenuBar())
+        // {
+        if (ImGui::Button("Connect..."))
         {
-            if (ImGui::BeginMenu("Options"))
+            ImGui::OpenPopup("SetClientInfo");
+        }
+        // if (ImGui::BeginMenu("Options"))
+        // {
+        //     if (ImGui::MenuItem("Connect"))
+        //     {
+        //         std::cout << "Opening popup...\n"; // Debug log
+        //         ImGui::OpenPopup("SetClientInfo");
+        //     }
+
+        //     if (ImGui::MenuItem("Ping"))
+        //     {
+        //         client.ping_server();
+        //     }
+        //     if (ImGui::MenuItem("Disconnect"))
+        //     {
+        //         client.disconnect();
+        //     }
+        //     if (ImGui::MenuItem("Quit"))
+        //     {
+        //         glfwSetWindowShouldClose(window_, true);
+        //     }
+
+        //     ImGui::EndMenu();
+        // }
+
+        //     ImGui::EndMenuBar();
+        // }
+
+        // Begin Popup
+        if (ImGui::BeginPopupModal("SetClientInfo"))
+        {
+            static std::string client_info{ "(unknown)" };
+
+            ImGui::Text("Choose a name:");
+            ImGui::InputTextWithHint("##ClientInfoInput",
+                                     "Your name...",
+                                     client_info.data(),
+                                     client_info.size());
+
+            client.set_info(client_info);
+
+            if (ImGui::Button("Ok"))
             {
-                if (ImGui::MenuItem("Connect"))
+                if (!client.is_connected())
                 {
-                    if (!client.is_connected())
-                    {
-                        client.connect("127.0.0.1", 60000);
-                    }
+                    client.connect("127.0.0.1", 60000);
                 }
 
-                if (ImGui::MenuItem("Ping"))
-                {
-                    client.ping_server();
-                }
-                if (ImGui::MenuItem("Disconnect"))
-                {
-                    client.disconnect();
-                }
-                if (ImGui::MenuItem("Quit"))
-                {
-                    glfwSetWindowShouldClose(window_, true);
-                }
-
-                ImGui::EndMenu();
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Cancel"))
+            {
+                ImGui::CloseCurrentPopup();
             }
 
-            ImGui::EndMenuBar();
+            ImGui::EndPopup();
         }
 
         // Split into two columns
@@ -128,7 +160,7 @@ class Ui
         ImGui::Text("Chats");
         ImGui::BeginChild("ChatsListPanel", ImVec2(0, top_heigth), true);
 
-        for (const auto& msg : client.get_messages())
+        for (const auto& msg : client.messages())
         {
             ImGui::Text("%s", msg.data());
         }
@@ -168,7 +200,10 @@ class Ui
         // --- Right panel: Clients ---
         ImGui::Text("Clients");
         ImGui::BeginChild("ClientsChild", ImVec2(0, -30), true);
-        // You can list your clients here
+        for (const auto& c : client.other_clients_list())
+        {
+            ImGui::Text("%s", c.name.c_str());
+        }
         ImGui::EndChild();
 
         // --- Right panel: Clients ---
