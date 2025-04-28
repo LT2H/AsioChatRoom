@@ -18,6 +18,7 @@ enum class CustomMsgTypes : uint32_t
     MessageAll,
     ServerMessage,
     NewClientConnected,
+    ClientDisconnected
 };
 
 class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
@@ -74,6 +75,19 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
             message_all_clients(msg_for_other_clients, client);
         }
         break;
+
+        case CustomMsgTypes::ClientDisconnected:
+        {
+            std::cout << "[" << client->id() << "]: Client Disconnected\n";
+
+            clients_.erase(client->id());
+
+            fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
+            msg_for_other_clients.header.id = CustomMsgTypes::ClientDisconnected;
+            msg_for_other_clients << client->id();
+
+            message_all_clients(msg_for_other_clients, client);
+        }
 
         case CustomMsgTypes::ServerPing:
         {
