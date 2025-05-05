@@ -107,21 +107,22 @@ class Ui
         // Begin Popup
         if (ImGui::BeginPopupModal("SetClientInfo"))
         {
-            static std::array<char, fw::net::array_size> client_info{ "(unknown)" };
+            static std::array<char, fw::net::array_size> client_name{ "(unknown)" };
 
             ImGui::Text("Choose a name:");
             ImGui::InputTextWithHint("##ClientInfoInput",
                                      "Your name...",
-                                     client_info.data(),
-                                     client_info.size());
+                                     client_name.data(),
+                                     client_name.size());
 
-            client.set_info(client_info);
 
             if (ImGui::Button("Ok"))
             {
                 if (!client.is_connected())
                 {
                     client.connect("127.0.0.1", 60000);
+                    // Save this client's name
+                    client.set_name(client_name);
                 }
 
                 ImGui::CloseCurrentPopup();
@@ -189,9 +190,9 @@ class Ui
         // --- Right panel: Clients ---
         ImGui::Text("Clients");
         ImGui::BeginChild("ClientsChild", ImVec2(0, -30), true);
-        for (const auto& id : client.other_clients_list())
+        for (const auto& client_info  : client.other_clients_list())
         {
-            ImGui::Text("Client (%u)", id);
+            ImGui::Text("%s", client_info.to_string().c_str());
         }
         ImGui::EndChild();
 

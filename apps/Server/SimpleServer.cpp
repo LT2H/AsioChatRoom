@@ -18,7 +18,15 @@ enum class CustomMsgTypes : uint32_t
     MessageAll,
     ServerMessage,
     NewClientConnected,
-    ClientDisconnected
+    ClientDisconnected,
+    ACKOtherClients,
+};
+
+struct TrackedClient
+{
+    std::shared_ptr<fw::net::Connection<CustomMsgTypes>> conn;
+   
+    std::array<char, fw::net::array_size> name{ "(unknown)" };
 };
 
 class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
@@ -37,12 +45,15 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         //  The new client should also know about all previous clients
         for (auto& [id, existing_client] : clients_)
         {
-            if (existing_client != client)
+            if (existing_client.conn != client)
             {
                 fw::net::Message<CustomMsgTypes> msg_about_existing_client;
                 msg_about_existing_client.header.id =
-                    CustomMsgTypes::NewClientConnected;
+                    CustomMsgTypes::ACKOtherClients;
+
+                msg_about_existing_client << existing_client.name;
                 msg_about_existing_client << id;
+
                 client->send(msg_about_existing_client);
             }
         }
@@ -65,11 +76,17 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
         {
             std::cout << "[" << client->id() << "]: New Client Connected\n";
 
-            // Track this client
-            clients_[client->id()] = client;
-
             fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
             msg_for_other_clients.header.id = CustomMsgTypes::NewClientConnected;
+
+            std::array<char, fw::net::array_size> new_client_name{};
+            msg >> new_client_name;
+
+            // Track this client
+            clients_[client->id()] = TrackedClient{ client, new_client_name };
+
+            // Must reverse the order
+            msg_for_other_clients << new_client_name;
             msg_for_other_clients << client->id();
 
             message_all_clients(msg_for_other_clients, client);
@@ -88,6 +105,7 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
 
             message_all_clients(msg_for_other_clients, client);
         }
+        break;
 
         case CustomMsgTypes::ServerPing:
         {
@@ -134,9 +152,7 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
     }
 
   private:
-    std::unordered_map<uint32_t,
-                       std::shared_ptr<fw::net::Connection<CustomMsgTypes>>>
-        clients_{};
+    std::unordered_map<uint32_t, TrackedClient> clients_{};
 };
 
 int main()

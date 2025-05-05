@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <windows.h>
 
@@ -17,11 +18,13 @@ enum class CustomMsgTypes : uint32_t
     MessageAll,
     ServerMessage,
     NewClientConnected,
-    ClientDisconnected
+    ClientDisconnected,
+    ACKOtherClients
 };
 
 struct ClientInfo
 {
+    uint32_t id{ 0 };
     std::array<char, fw::net::array_size> name{ "(unknown)" };
 
     std::string to_string() const { return std::string{ name.data() }; }
@@ -95,34 +98,64 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                 case CustomMsgTypes::ServerAccept:
                 {
                     std::cout << "Server Accepted Connection\n";
-                    
+
                     fw::net::Message<CustomMsgTypes> broadcasting_msg{};
                     broadcasting_msg.header.id = CustomMsgTypes::NewClientConnected;
+                    broadcasting_msg << name_; // with this client's name
 
                     send(broadcasting_msg);
+                }
+                break;
+
+                case CustomMsgTypes::ACKOtherClients:
+                {
+                    uint32_t client_id{};
+                    std::array<char, fw::net::array_size> name{};
+
+                    try
+                    {
+                        msg >> client_id;
+                        msg >> name;
+                    }
+                    catch (const std::runtime_error& e)
+                    {
+                        std::cerr << e.what() << "\n";
+                    }
+
+                    other_clients_list_.emplace_back(client_id, name);
                 }
                 break;
 
                 case CustomMsgTypes::NewClientConnected:
                 {
                     uint32_t client_id{};
+                    std::array<char, fw::net::array_size> name{};
 
-                    msg >> client_id;
+                    try
+                    {
+                        msg >> client_id;
+                        msg >> name;
+                    }
+                    catch (const std::runtime_error& e)
+                    {
+                        std::cerr << e.what() << "\n";
+                    }
 
-                    other_clients_list_.push_back(client_id);
+                    other_clients_list_.emplace_back(client_id, name);
                 }
                 break;
 
                 case CustomMsgTypes::ClientDisconnected:
                 {
                     uint32_t client_id_to_remove{};
-
                     msg >> client_id_to_remove;
 
                     other_clients_list_.erase(
-                        std::remove(other_clients_list_.begin(),
-                                    other_clients_list_.end(),
-                                    client_id_to_remove),
+                        std::remove_if(
+                            other_clients_list_.begin(),
+                            other_clients_list_.end(),
+                            [client_id_to_remove](const ClientInfo& client)
+                            { return client.id == client_id_to_remove; }),
                         other_clients_list_.end());
                 }
                 break;
@@ -169,24 +202,22 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         }
     }
 
-    constexpr std::string name() const { return name_; }
+    void set_name(const std::array<char, fw::net::array_size>& name)
+    {
+        name_ = name;
+    }
 
-    void set_name(std::string_view name) { name_ = name; }
-
-    constexpr std::vector<uint32_t> other_clients_list() const
+    constexpr std::vector<ClientInfo> other_clients_list() const
     {
         return other_clients_list_;
     }
 
-    constexpr ClientInfo info() const { return info_; }
-
-    void set_info(std::array<char, fw::net::array_size> info) { info_.name = info; }
+    constexpr std::array<char, fw::net::array_size> name() const { return name_; }
 
   private:
-    ClientInfo info_{};
+    std::array<char, fw::net::array_size> name_{};
 
     std::array<char, fw::net::array_size> sending_msg_{};
     std::vector<std::array<char, fw::net::array_size>> messages_;
-    std::vector<uint32_t> other_clients_list_{};
-    std::string name_{ "(unknown)" };
+    std::vector<ClientInfo> other_clients_list_{};
 };
