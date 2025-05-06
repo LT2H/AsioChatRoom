@@ -22,11 +22,13 @@ enum class CustomMsgTypes : uint32_t
     ACKOtherClients,
 };
 
-struct TrackedClient
+struct ClientInfo
 {
     std::shared_ptr<fw::net::Connection<CustomMsgTypes>> conn;
-   
-    std::array<char, fw::net::array_size> name{ "(unknown)" };
+
+    std::array<char, fw::net::array_size> name{ "Anon" };
+
+    std::array<float, 3> color{ 1.0f, 1.0f, 1.0f };
 };
 
 class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
@@ -51,8 +53,8 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
                 msg_about_existing_client.header.id =
                     CustomMsgTypes::ACKOtherClients;
 
-                msg_about_existing_client << existing_client.name;
-                msg_about_existing_client << id;
+                msg_about_existing_client << existing_client.color
+                                          << existing_client.name << id;
 
                 client->send(msg_about_existing_client);
             }
@@ -79,15 +81,16 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
             fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
             msg_for_other_clients.header.id = CustomMsgTypes::NewClientConnected;
 
-            std::array<char, fw::net::array_size> new_client_name{};
-            msg >> new_client_name;
+            ClientInfo new_client_info{};
+
+            msg >> new_client_info.color >> new_client_info.name;
 
             // Track this client
-            clients_[client->id()] = TrackedClient{ client, new_client_name };
+            clients_[client->id()] = new_client_info;
 
             // Must reverse the order
-            msg_for_other_clients << new_client_name;
-            msg_for_other_clients << client->id();
+            msg_for_other_clients << new_client_info.color << new_client_info.name
+                                  << client->id();
 
             message_all_clients(msg_for_other_clients, client);
         }
@@ -152,7 +155,7 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
     }
 
   private:
-    std::unordered_map<uint32_t, TrackedClient> clients_{};
+    std::unordered_map<uint32_t, ClientInfo> clients_{};
 };
 
 int main()

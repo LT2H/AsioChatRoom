@@ -84,8 +84,6 @@ class Ui
   private:
     void render_ui(CustomClient& client)
     {
-        // if (ImGui::BeginMenuBar())
-        // {
         if (ImGui::Button("Connect..."))
         {
             ImGui::OpenPopup("SetClientInfo");
@@ -107,22 +105,20 @@ class Ui
         // Begin Popup
         if (ImGui::BeginPopupModal("SetClientInfo"))
         {
-            static std::array<char, fw::net::array_size> client_name{ "(unknown)" };
-
             ImGui::Text("Choose a name:");
             ImGui::InputTextWithHint("##ClientInfoInput",
                                      "Your name...",
-                                     client_name.data(),
-                                     client_name.size());
+                                     client.name().data(),
+                                     client.name().size());
 
+            ImGui::Text("Choose a color:");
+            ImGui::ColorEdit3("Color", client.color().data());
 
             if (ImGui::Button("Ok"))
             {
                 if (!client.is_connected())
                 {
                     client.connect("127.0.0.1", 60000);
-                    // Save this client's name
-                    client.set_name(client_name);
                 }
 
                 ImGui::CloseCurrentPopup();
@@ -190,9 +186,13 @@ class Ui
         // --- Right panel: Clients ---
         ImGui::Text("Clients");
         ImGui::BeginChild("ClientsChild", ImVec2(0, -30), true);
-        for (const auto& client_info  : client.other_clients_list())
+        for (const auto& other_client : client.other_clients_list())
         {
-            ImGui::Text("%s", client_info.to_string().c_str());
+            const auto color{ other_client.color };
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  ImVec4{ color[0], color[1], color[2], 1.0f });
+            ImGui::Text("%s", other_client.to_string().c_str());
+            ImGui::PopStyleColor();
         }
         ImGui::EndChild();
 

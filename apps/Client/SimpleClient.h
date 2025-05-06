@@ -25,9 +25,11 @@ enum class CustomMsgTypes : uint32_t
 struct ClientInfo
 {
     uint32_t id{ 0 };
-    std::array<char, fw::net::array_size> name{ "(unknown)" };
+    std::array<char, fw::net::array_size> name{ "Anon" };
 
-    std::string to_string() const { return std::string{ name.data() }; }
+    std::array<float, 3> color{ 1.0f, 1.0f, 1.0f };
+
+    constexpr std::string to_string() const { return std::string{ name.data() }; }
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
@@ -101,7 +103,8 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
                     fw::net::Message<CustomMsgTypes> broadcasting_msg{};
                     broadcasting_msg.header.id = CustomMsgTypes::NewClientConnected;
-                    broadcasting_msg << name_; // with this client's name
+                    broadcasting_msg << info_.name; // with this client's name
+                    broadcasting_msg << info_.color;
 
                     send(broadcasting_msg);
                 }
@@ -109,39 +112,37 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
                 case CustomMsgTypes::ACKOtherClients:
                 {
-                    uint32_t client_id{};
-                    std::array<char, fw::net::array_size> name{};
+                    ClientInfo client_info{};
 
                     try
                     {
-                        msg >> client_id;
-                        msg >> name;
+                        msg >> client_info.id >> client_info.name >>
+                            client_info.color;
                     }
                     catch (const std::runtime_error& e)
                     {
                         std::cerr << e.what() << "\n";
                     }
 
-                    other_clients_list_.emplace_back(client_id, name);
+                    other_clients_list_.emplace_back(client_info);
                 }
                 break;
 
                 case CustomMsgTypes::NewClientConnected:
                 {
-                    uint32_t client_id{};
-                    std::array<char, fw::net::array_size> name{};
+                    ClientInfo client_info{};
 
                     try
                     {
-                        msg >> client_id;
-                        msg >> name;
+                        msg >> client_info.id >> client_info.name >>
+                            client_info.color;
                     }
                     catch (const std::runtime_error& e)
                     {
                         std::cerr << e.what() << "\n";
                     }
 
-                    other_clients_list_.emplace_back(client_id, name);
+                    other_clients_list_.emplace_back(client_info);
                 }
                 break;
 
@@ -202,20 +203,24 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         }
     }
 
-    void set_name(const std::array<char, fw::net::array_size>& name)
-    {
-        name_ = name;
-    }
+    std::array<char, fw::net::array_size>& name() { return info_.name; }
+
+    std::array<float, 3>& color() { return info_.color; }
+
+    constexpr std::array<float, 3> color() const { return info_.color; }
 
     constexpr std::vector<ClientInfo> other_clients_list() const
     {
         return other_clients_list_;
     }
 
-    constexpr std::array<char, fw::net::array_size> name() const { return name_; }
+    constexpr std::array<char, fw::net::array_size> name() const
+    {
+        return info_.name;
+    }
 
   private:
-    std::array<char, fw::net::array_size> name_{};
+    ClientInfo info_{};
 
     std::array<char, fw::net::array_size> sending_msg_{};
     std::vector<std::array<char, fw::net::array_size>> messages_;
