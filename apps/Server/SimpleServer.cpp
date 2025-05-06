@@ -1,3 +1,5 @@
+#include "Message.h"
+
 #include "NetCommon/NetMessage.h"
 #include <NetCommon/FwNet.h>
 
@@ -9,27 +11,6 @@
 #include <minwindef.h>
 #include <unordered_map>
 #include <vector>
-
-enum class CustomMsgTypes : uint32_t
-{
-    ServerAccept,
-    ServerDeny,
-    ServerPing,
-    MessageAll,
-    ServerMessage,
-    NewClientConnected,
-    ClientDisconnected,
-    ACKOtherClients,
-};
-
-struct ClientInfo
-{
-    std::shared_ptr<fw::net::Connection<CustomMsgTypes>> conn;
-
-    std::array<char, fw::net::array_size> name{ "Anon" };
-
-    std::array<float, 3> color{ 1.0f, 1.0f, 1.0f };
-};
 
 class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
 {
@@ -140,12 +121,12 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
             fw::net::Message<CustomMsgTypes> sending_message{};
             sending_message.header.id = CustomMsgTypes::ServerMessage;
 
-            std::array<char, fw::net::array_size> msg_content{};
-            msg >> msg_content;
+            Message message{};
+            msg >> message.client_info.name >> message.client_info.color >> message.content;
 
             // Must reverse the order
-            sending_message << msg_content;
-            sending_message << client->id();
+            sending_message << message.content << message.client_info.color
+                            << message.client_info.name << client->id();
 
             // Send the message to all clients
             message_all_clients(sending_message, client);

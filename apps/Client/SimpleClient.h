@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ClientInfo.h"
+#include "Message.h"
+
 #include "NetCommon/NetMessage.h"
 #include <NetCommon/FwNet.h>
 
@@ -20,16 +23,6 @@ enum class CustomMsgTypes : uint32_t
     NewClientConnected,
     ClientDisconnected,
     ACKOtherClients
-};
-
-struct ClientInfo
-{
-    uint32_t id{ 0 };
-    std::array<char, fw::net::array_size> name{ "Anon" };
-
-    std::array<float, 3> color{ 1.0f, 1.0f, 1.0f };
-
-    constexpr std::string to_string() const { return std::string{ name.data() }; }
 };
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
@@ -62,31 +55,29 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         fw::net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::MessageAll;
 
-        msg << sending_msg_;
+        msg << sending_msg_.content << sending_msg_.client_info.color << sending_msg_.client_info.name;
 
         send(msg);
     }
 
-    void set_sending_msg(std::array<char, fw::net::array_size>&& sending_msg)
+    void set_sending_msg(Message&& sending_msg)
     {
+        sending_msg.client_info = info_;
         sending_msg_ = sending_msg;
+
+        // Your message
         append_msg(sending_msg_);
     }
 
-    constexpr std::array<char, fw::net::array_size> sending_msg() const
+    constexpr Message sending_msg() const
     {
         return sending_msg_;
     }
 
-    constexpr std::vector<std::array<char, fw::net::array_size>> messages() const
-    {
-        return messages_;
-    }
+    constexpr std::vector<Message> messages() const { return messages_; }
 
-    void append_msg(const std::array<char, fw::net::array_size>& message)
-    {
-        messages_.push_back(message);
-    }
+    // For the Ui only
+    void append_msg(const Message& message) { messages_.push_back(message); }
 
     void handle_incoming_msg()
     {
@@ -178,24 +169,21 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
                 case CustomMsgTypes::ServerMessage:
                 {
-                    uint32_t clientID{};
-                    std::array<char, fw::net::array_size> msg_content{};
+                    // uint32_t clientID{};
+                    // std::array<char, fw::net::array_size> msg_content{};
+
+                    Message message{};
 
                     try
                     {
-                        msg >> clientID;
-                        msg >> msg_content;
+                        msg >> message.client_info.id >> message.client_info.name >> message.client_info.color >> message.content;
                     }
                     catch (const std::runtime_error& e)
                     {
                         std::cerr << e.what() << "\n";
                     }
 
-
-                    std::cout << "[" << clientID << "] Said : " << msg_content.data()
-                              << "\n";
-
-                    append_msg(msg_content);
+                    append_msg(message);
                 }
                 break;
                 }
@@ -222,7 +210,7 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
   private:
     ClientInfo info_{};
 
-    std::array<char, fw::net::array_size> sending_msg_{};
-    std::vector<std::array<char, fw::net::array_size>> messages_;
+    Message sending_msg_{};
+    std::vector<Message> messages_;
     std::vector<ClientInfo> other_clients_list_{};
 };

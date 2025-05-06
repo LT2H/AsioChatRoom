@@ -148,7 +148,12 @@ class Ui
 
         for (const auto& msg : client.messages())
         {
-            ImGui::Text("%s", msg.data());
+            const auto color{ msg.client_info.color };
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  ImVec4{ color[0], color[1], color[2], 1.0f });
+
+            ImGui::Text("%s: %s", msg.client_info.name.data(), msg.content.data());
+            ImGui::PopStyleColor();
         }
 
         // Your top content
@@ -163,16 +168,16 @@ class Ui
         ImGui::Text("Message");
         ImGui::SameLine();
 
-        static std::array<char, fw::net::array_size> msg_content{};
+        static Message msg_to_send{};
         ImGui::InputTextWithHint("##ChatInput",
                                  "Type something...",
-                                 msg_content.data(),
-                                 msg_content.size());
+                                 msg_to_send.content.data(),
+                                 msg_to_send.content.size());
         ImGui::SameLine();
 
         if (ImGui::Button("Send"))
         {
-            client.set_sending_msg(std::move(msg_content));
+            client.set_sending_msg(std::move(msg_to_send));
             client.message_all();
         }
 
