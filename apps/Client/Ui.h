@@ -7,6 +7,8 @@
 
 #include <GLFW/glfw3.h> // Include glfw3.h after OpenGL32.lib
 #include <array>
+#include <ctime>
+#include <iomanip>
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -153,6 +155,19 @@ class Ui
                                   ImVec4{ color[0], color[1], color[2], 1.0f });
 
             ImGui::Text("%s: %s", msg.client_info.name.data(), msg.content.data());
+            // Right-align the time text
+            float window_width{ ImGui::GetWindowWidth() };
+            float text_width{
+                ImGui::CalcTextSize(msg.formatted_time().c_str()).x
+            }; // Calculate the width of the time text
+            ImGui::SetCursorPosX(window_width - text_width -
+                                 10.0f); // Move the cursor to the right side
+
+            // Push the color for the time text
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  ImVec4{ color[0], color[1], color[2], 1.0f });
+            ImGui::Text("%s", msg.formatted_time().c_str()); // Display the time text
+            ImGui::PopStyleColor();
             ImGui::PopStyleColor();
         }
 
