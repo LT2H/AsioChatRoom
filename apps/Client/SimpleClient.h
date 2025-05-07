@@ -55,7 +55,8 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
         fw::net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::MessageAll;
 
-        msg << sending_msg_.content << sending_msg_.client_info.color << sending_msg_.client_info.name;
+        msg << sending_msg_.content << sending_msg_.client_info.color
+            << sending_msg_.client_info.name;
 
         send(msg);
     }
@@ -63,16 +64,13 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
     void set_sending_msg(Message&& sending_msg)
     {
         sending_msg.client_info = info_;
-        sending_msg_ = sending_msg;
+        sending_msg_            = sending_msg;
 
         // Your message
         append_msg(sending_msg_);
     }
 
-    constexpr Message sending_msg() const
-    {
-        return sending_msg_;
-    }
+    constexpr Message sending_msg() const { return sending_msg_; }
 
     constexpr std::vector<Message> messages() const { return messages_; }
 
@@ -176,7 +174,8 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
                     try
                     {
-                        msg >> message.client_info.id >> message.client_info.name >> message.client_info.color >> message.content;
+                        msg >> message.client_info.id >> message.client_info.name >>
+                            message.client_info.color >> message.content;
                     }
                     catch (const std::runtime_error& e)
                     {
@@ -206,6 +205,8 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
     {
         return info_.name;
     }
+
+    void clear_other_clients_list() { other_clients_list_.clear(); }
 
   private:
     ClientInfo info_{};

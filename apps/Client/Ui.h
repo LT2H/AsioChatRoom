@@ -86,37 +86,93 @@ class Ui
   private:
     void render_ui(CustomClient& client)
     {
-        if (ImGui::Button("Connect..."))
+        if (ImGui::BeginMenuBar())
         {
-            ImGui::OpenPopup("SetClientInfo");
+            if (ImGui::BeginMenu("Options"))
+            {
+                if (client.is_connected())
+                {
+                    ImGui::BeginDisabled(true);
+                }
+                else
+                {
+                    ImGui::BeginDisabled(false);
+                }
+                if (ImGui::MenuItem("Connect..."))
+                {
+                    should_open_popup_ = true;
+                }
+                ImGui::EndDisabled();
+
+                // if (ImGui::MenuItem("Ping"))
+                // {
+                //     client.ping_server();
+                // }
+
+                if (!client.is_connected())
+                {
+                    ImGui::BeginDisabled(true);
+                }
+                else
+                {
+                    ImGui::BeginDisabled(false);
+                }
+                if (ImGui::MenuItem("Disconnect"))
+                {
+                    fw::net::Message<CustomMsgTypes> disconnect_msg{};
+                    disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
+                    client.send(disconnect_msg);
+                    client.disconnect();
+                    client.clear_other_clients_list();
+                }
+                ImGui::EndDisabled();
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
         }
 
-        if (ImGui::Button("Ping"))
+        if (should_open_popup_)
         {
-            client.ping_server();
-        }
-
-        if (ImGui::Button("Disconnect"))
-        {
-            fw::net::Message<CustomMsgTypes> disconnect_msg{};
-            disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
-            client.send(disconnect_msg);
-            client.disconnect();
+            ImGui::OpenPopup("Connect");
+            should_open_popup_ = false;
         }
 
         // Begin Popup
-        if (ImGui::BeginPopupModal("SetClientInfo"))
+        if (ImGui::BeginPopupModal("Connect",
+                                   nullptr,
+                                   ImGuiWindowFlags_AlwaysAutoResize |
+                                       ImGuiWindowFlags_NoResize))
         {
-            ImGui::Text("Choose a name:");
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                                ImVec2(10, 10)); // Add space between items
+            ImGui::PushStyleVar(
+                ImGuiStyleVar_FramePadding,
+                ImVec2(8, 6)); // Add internal padding to inputs/buttons
+
+
+            ImGui::Text("Enter your display name");
             ImGui::InputTextWithHint("##ClientInfoInput",
                                      "Your name...",
                                      client.name().data(),
                                      client.name().size());
 
-            ImGui::Text("Choose a color:");
-            ImGui::ColorEdit3("Color", client.color().data());
+            ImGui::ColorEdit3("###ColorPicker",
+                              client.color().data(),
+                              ImGuiColorEditFlags_NoInputs);
+            ImGui::SameLine();
+            ImGui::Text("Pick your favorite color");
 
-            if (ImGui::Button("Ok"))
+            float button_width{ 100.0f };
+            float spacing{ 20.0f };
+            float total_width{ button_width * 2 + spacing };
+            float window_width{ ImGui::GetWindowSize().x };
+            float start_x{ (window_width - total_width) * 0.5f };
+
+            ImGui::SetCursorPosX(start_x);
+
+            if (ImGui::Button("Ok", ImVec2(button_width, 0)))
             {
                 if (!client.is_connected())
                 {
@@ -125,10 +181,15 @@ class Ui
 
                 ImGui::CloseCurrentPopup();
             }
-            if (ImGui::Button("Cancel"))
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(button_width, 0)))
             {
                 ImGui::CloseCurrentPopup();
             }
+
+            ImGui::PopStyleVar(2);
 
             ImGui::EndPopup();
         }
@@ -180,21 +241,31 @@ class Ui
         ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Bottom padding
         ImGui::Indent(40.0f);              // Left padding
 
+        if (!client.is_connected())
+        {
+            ImGui::BeginDisabled(true);
+        }
+        else
+        {
+            ImGui::BeginDisabled(false);
+        }
+
         ImGui::Text("Message");
         ImGui::SameLine();
 
-        static Message msg_to_send{};
         ImGui::InputTextWithHint("##ChatInput",
                                  "Type something...",
-                                 msg_to_send.content.data(),
-                                 msg_to_send.content.size());
+                                 msg_to_send_.content.data(),
+                                 msg_to_send_.content.size());
         ImGui::SameLine();
 
         if (ImGui::Button("Send"))
         {
-            client.set_sending_msg(std::move(msg_to_send));
+            client.set_sending_msg(std::move(msg_to_send_));
             client.message_all();
+            msg_to_send_.content.fill('\0');
         }
+        ImGui::EndDisabled();
 
         ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Bottom padding
 
@@ -230,4 +301,6 @@ class Ui
 
   private:
     GLFWwindow* window_;
+    bool should_open_popup_{ false };
+    Message msg_to_send_{};
 };
