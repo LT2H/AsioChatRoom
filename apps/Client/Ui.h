@@ -1,14 +1,13 @@
 #pragma once
 
-#include "NetCommon/NetMessage.h"
 #include "SimpleClient.h"
 
+#include <array>
+
+#include "NetCommon/NetMessage.h"
 #include <NetCommon/FwNet.h>
 
 #include <GLFW/glfw3.h> // Include glfw3.h after OpenGL32.lib
-#include <array>
-#include <ctime>
-#include <iomanip>
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -84,7 +83,7 @@ class Ui
     ~Ui() { cleanup(); }
 
   private:
-    void render_ui(CustomClient& client)
+    void render_menu(CustomClient& client)
     {
         if (ImGui::BeginMenuBar())
         {
@@ -193,6 +192,11 @@ class Ui
 
             ImGui::EndPopup();
         }
+    }
+
+    void render_ui(CustomClient& client)
+    {
+        render_menu(client);
 
         // Split into two columns
         ImGui::Columns(2, nullptr, true);
