@@ -1,7 +1,7 @@
 # Asio ImGui Chat Room Application (Client/Server)
 A client-server chat room application using a small custom framework to abstract **Asio** for networking and **ImGui** for the GUI.
 
-![image](https://github.com/user-attachments/assets/214f9819-4e13-4bfa-acea-fc4fc69f8842)
+![image](https://github.com/user-attachments/assets/2fc5ca88-d87c-4123-a18c-86bde2735795)
 
 ## Features
 - **Real-time messaging**: Multiple clients can send and receive messages instantly through the server.
