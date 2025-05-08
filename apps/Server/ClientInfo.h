@@ -1,7 +1,7 @@
 #pragma once
 
 #include <NetCommon/FwNet.h>
-#include "CustomMsgTypes.h"
+#include "../CustomMsgTypes.h"
 
 struct ClientInfo
 {

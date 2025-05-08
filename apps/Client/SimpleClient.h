@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../CustomMsgTypes.h"
 #include "ClientInfo.h"
 #include "Message.h"
 
@@ -12,18 +13,6 @@
 #include <stdexcept>
 #include <string>
 #include <windows.h>
-
-enum class CustomMsgTypes : uint32_t
-{
-    ServerAccept,
-    ServerDeny,
-    ServerPing,
-    MessageAll,
-    ServerMessage,
-    NewClientConnected,
-    ClientDisconnected,
-    ACKOtherClients
-};
 
 class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 {
