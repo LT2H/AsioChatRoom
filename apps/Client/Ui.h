@@ -198,8 +198,11 @@ class Ui
     {
         render_menu(client);
 
+        float total_width{ ImGui::GetContentRegionAvail().x };
         // Split into two columns
         ImGui::Columns(2, nullptr, true);
+
+        ImGui::SetColumnWidth(0, total_width * 0.8); // Left column takes 80%
 
         // --- Left panel: Chats ---
         float available_height{ ImGui::GetContentRegionAvail().y };
@@ -243,7 +246,7 @@ class Ui
         ImGui::BeginChild("InputPanel", ImVec2(0, bottom_height), true);
 
         ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Bottom padding
-        ImGui::Indent(40.0f);              // Left padding
+        ImGui::Indent(100.0f);              // Left padding
 
         if (!client.is_connected())
         {
