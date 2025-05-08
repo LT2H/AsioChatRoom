@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleClient.h"
+#include "Client.h"
 
 #include <array>
 
@@ -44,7 +44,7 @@ class Ui
         return 0;
     }
 
-    void render_loop(CustomClient& client)
+    void render_loop(Client& client)
     {
         while (!glfwWindowShouldClose(window_))
         {
@@ -83,7 +83,7 @@ class Ui
     ~Ui() { cleanup(); }
 
   private:
-    void render_menu(CustomClient& client)
+    void render_menu(Client& client)
     {
         if (ImGui::BeginMenuBar())
         {
@@ -194,7 +194,7 @@ class Ui
         }
     }
 
-    void render_ui(CustomClient& client)
+    void render_ui(Client& client)
     {
         render_menu(client);
 

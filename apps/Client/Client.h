@@ -14,10 +14,10 @@
 #include <string>
 #include <windows.h>
 
-class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
+class Client : public fw::net::ClientInterface<CustomMsgTypes>
 {
   public:
-    ~CustomClient() override
+    ~Client() override
     {
         fw::net::Message<CustomMsgTypes> disconnect_msg{};
         disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;

@@ -12,10 +12,10 @@
 #include <unordered_map>
 #include <vector>
 
-class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
+class Server : public fw::net::ServerInterface<CustomMsgTypes>
 {
   public:
-    CustomServer(uint16_t port) : fw::net::ServerInterface<CustomMsgTypes>{ port } {}
+    Server(uint16_t port) : fw::net::ServerInterface<CustomMsgTypes>{ port } {}
 
   protected:
     virtual bool
@@ -141,7 +141,7 @@ class CustomServer : public fw::net::ServerInterface<CustomMsgTypes>
 
 int main()
 {
-    CustomServer server{ 60000 };
+    Server server{ 60000 };
     server.start();
 
     while (true)
