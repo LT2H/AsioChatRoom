@@ -12,7 +12,7 @@ struct Message
     std::time_t datetime{ std::chrono::system_clock::to_time_t(
         std::chrono::system_clock::now()) }; // Convert time_point to time_t
 
-    constexpr std::string formatted_time() const
+    std::string formatted_time() const
     {
         std::tm* time_info{ std::localtime(&datetime) };
         std::array<char, 64> buffer{};
