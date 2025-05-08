@@ -79,6 +79,10 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                 {
                     std::cout << "Server Accepted Connection\n";
 
+                    ClientInfo this_client_info{0, info_.name, info_.color};
+
+                    clients_list_.push_back(this_client_info);
+
                     fw::net::Message<CustomMsgTypes> broadcasting_msg{};
                     broadcasting_msg.header.id = CustomMsgTypes::NewClientConnected;
                     broadcasting_msg << info_.name; // with this client's name
@@ -102,7 +106,7 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                         std::cerr << e.what() << "\n";
                     }
 
-                    other_clients_list_.emplace_back(client_info);
+                    clients_list_.emplace_back(client_info);
                 }
                 break;
 
@@ -120,7 +124,7 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                         std::cerr << e.what() << "\n";
                     }
 
-                    other_clients_list_.emplace_back(client_info);
+                    clients_list_.emplace_back(client_info);
                 }
                 break;
 
@@ -129,13 +133,13 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
                     uint32_t client_id_to_remove{};
                     msg >> client_id_to_remove;
 
-                    other_clients_list_.erase(
+                    clients_list_.erase(
                         std::remove_if(
-                            other_clients_list_.begin(),
-                            other_clients_list_.end(),
+                            clients_list_.begin(),
+                            clients_list_.end(),
                             [client_id_to_remove](const ClientInfo& client)
                             { return client.id == client_id_to_remove; }),
-                        other_clients_list_.end());
+                        clients_list_.end());
                 }
                 break;
 
@@ -185,22 +189,19 @@ class CustomClient : public fw::net::ClientInterface<CustomMsgTypes>
 
     constexpr std::array<float, 3> color() const { return info_.color; }
 
-    constexpr std::vector<ClientInfo> other_clients_list() const
-    {
-        return other_clients_list_;
-    }
+    constexpr std::vector<ClientInfo> clients_list() const { return clients_list_; }
 
     constexpr std::array<char, fw::net::array_size> name() const
     {
         return info_.name;
     }
 
-    void clear_other_clients_list() { other_clients_list_.clear(); }
+    void clear_clients_list() { clients_list_.clear(); }
 
   private:
     ClientInfo info_{};
 
     Message sending_msg_{};
     std::vector<Message> messages_;
-    std::vector<ClientInfo> other_clients_list_{};
+    std::vector<ClientInfo> clients_list_{};
 };

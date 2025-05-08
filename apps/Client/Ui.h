@@ -23,7 +23,7 @@ class Ui
         }
 
         window_ =
-            glfwCreateWindow(1280, 720, "ImGui Minimal Example", nullptr, nullptr);
+            glfwCreateWindow(1280, 720, "Asio Chat Room Client", nullptr, nullptr);
 
         if (!window_)
         {
@@ -122,7 +122,7 @@ class Ui
                     disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
                     client.send(disconnect_msg);
                     client.disconnect();
-                    client.clear_other_clients_list();
+                    client.clear_clients_list();
                 }
                 ImGui::EndDisabled();
 
@@ -279,9 +279,9 @@ class Ui
         // --- Left panel: Chats ---
 
         // --- Right panel: Clients ---
-        ImGui::Text("Clients");
+        ImGui::Text("Online: %zu", client.clients_list().size());
         ImGui::BeginChild("ClientsChild", ImVec2(0, -30), true);
-        for (const auto& other_client : client.other_clients_list())
+        for (const auto& other_client : client.clients_list())
         {
             const auto color{ other_client.color };
             ImGui::PushStyleColor(ImGuiCol_Text,
