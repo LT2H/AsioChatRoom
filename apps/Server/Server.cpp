@@ -8,7 +8,6 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <minwindef.h>
 #include <unordered_map>
 #include <vector>
 

@@ -12,7 +12,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <windows.h>
 
 class Client : public fw::net::ClientInterface<CustomMsgTypes>
 {
@@ -59,9 +58,9 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
         append_msg(sending_msg_);
     }
 
-    constexpr Message sending_msg() const { return sending_msg_; }
+    Message sending_msg() const { return sending_msg_; }
 
-    constexpr std::vector<Message> messages() const { return messages_; }
+    std::vector<Message> messages() const { return messages_; }
 
     // For the Ui only
     void append_msg(const Message& message) { messages_.push_back(message); }
@@ -187,9 +186,9 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
 
     std::array<float, 3>& color() { return info_.color; }
 
-    constexpr std::array<float, 3> color() const { return info_.color; }
+    std::array<float, 3> color() const { return info_.color; }
 
-    constexpr std::vector<ClientInfo> clients_list() const { return clients_list_; }
+    std::vector<ClientInfo> clients_list() const { return clients_list_; }
 
     constexpr std::array<char, fw::net::array_size> name() const
     {
