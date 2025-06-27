@@ -2,8 +2,6 @@
 
 #include "NetCommon.h"
 #include "NetMessage.h"
-#include <condition_variable>
-#include <mutex>
 
 namespace fw
 {

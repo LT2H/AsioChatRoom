@@ -4,7 +4,6 @@
 #include "NetTsQueue.h"
 #include "NetMessage.h"
 #include "NetConnection.h"
-#include <memory>
 
 namespace fw
 {
