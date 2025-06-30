@@ -4,8 +4,6 @@
 #include "NetTsQueue.h"
 #include "NetMessage.h"
 
-namespace fw
-{
 namespace net
 {
 template <typename T> class ClientInterface
@@ -42,12 +40,17 @@ template <typename T> class ClientInterface
             connection_->connect_to_server(endpoints);
 
             // Start context thread
-            thr_context_ = std::thread([this] {
-                std::cout << "[Client] IO context thread started\n";
-                context_.run();
-                std::cout << "[Client] IO context thread ended\n"; // <-- This will print when context.run() exits
-            });
-            
+            thr_context_ = std::thread(
+                [this]
+                {
+                    std::cout << "[Client] IO context thread started\n";
+                    context_.run();
+                    std::cout
+                        << "[Client] IO context thread ended\n"; // <-- This will
+                                                                 // print when
+                                                                 // context.run()
+                                                                 // exits
+                });
         }
         catch (std::exception& e)
         {
@@ -113,4 +116,3 @@ template <typename T> class ClientInterface
 };
 
 } // namespace net
-} // namespace fw

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <NetCommon/FwNet.h>
+#include <NetCommon/NetCommon.h>
 #include "../CustomMsgTypes.h"
 
 struct ClientInfo
 {
-    std::shared_ptr<fw::net::Connection<CustomMsgTypes>> conn;
-    std::array<char, fw::net::array_size> name{ "Anon" };
+    std::shared_ptr<net::Connection<CustomMsgTypes>> conn;
+    std::array<char, net::array_size> name{ "Anon" };
 
     std::array<float, 3> color{ 1.0f, 1.0f, 1.0f };
 

@@ -5,7 +5,7 @@
 #include <array>
 
 #include "NetCommon/NetMessage.h"
-#include <NetCommon/FwNet.h>
+#include <NetCommon/NetCommon.h>
 
 #include <GLFW/glfw3.h> // Include glfw3.h after OpenGL32.lib
 #include "imgui.h"
@@ -118,7 +118,7 @@ class Ui
                 }
                 if (ImGui::MenuItem("Disconnect"))
                 {
-                    fw::net::Message<CustomMsgTypes> disconnect_msg{};
+                    net::Message<CustomMsgTypes> disconnect_msg{};
                     disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
                     client.send(disconnect_msg);
                     client.disconnect();

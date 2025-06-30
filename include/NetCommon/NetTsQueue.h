@@ -3,8 +3,6 @@
 #include "NetCommon.h"
 #include "NetMessage.h"
 
-namespace fw
-{
 namespace net
 {
 
@@ -120,4 +118,3 @@ template <typename T> class TsQueue
     std::mutex mux_blocking_;
 };
 } // namespace net
-} // namespace fw

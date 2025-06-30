@@ -1,7 +1,7 @@
 #include "Message.h"
 
 #include "NetCommon/NetMessage.h"
-#include <NetCommon/FwNet.h>
+#include <NetCommon/NetCommon.h>
 
 #include <array>
 #include <cstdint>
@@ -11,16 +11,16 @@
 #include <unordered_map>
 #include <vector>
 
-class Server : public fw::net::ServerInterface<CustomMsgTypes>
+class Server : public net::ServerInterface<CustomMsgTypes>
 {
   public:
-    Server(uint16_t port) : fw::net::ServerInterface<CustomMsgTypes>{ port } {}
+    Server(uint16_t port) : net::ServerInterface<CustomMsgTypes>{ port } {}
 
   protected:
     virtual bool
-    on_client_connect(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client)
+    on_client_connect(std::shared_ptr<net::Connection<CustomMsgTypes>> client)
     {
-        fw::net::Message<CustomMsgTypes> msg;
+        net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::ServerAccept;
         client->send(msg);
 
@@ -29,7 +29,7 @@ class Server : public fw::net::ServerInterface<CustomMsgTypes>
         {
             if (existing_client.conn != client)
             {
-                fw::net::Message<CustomMsgTypes> msg_about_existing_client;
+                net::Message<CustomMsgTypes> msg_about_existing_client;
                 msg_about_existing_client.header.id =
                     CustomMsgTypes::ACKOtherClients;
 
@@ -44,13 +44,13 @@ class Server : public fw::net::ServerInterface<CustomMsgTypes>
     }
 
     virtual void
-    on_client_disconnect(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client)
+    on_client_disconnect(std::shared_ptr<net::Connection<CustomMsgTypes>> client)
     {
     }
 
     virtual void
-    on_message(std::shared_ptr<fw::net::Connection<CustomMsgTypes>> client,
-               fw::net::Message<CustomMsgTypes>& msg)
+    on_message(std::shared_ptr<net::Connection<CustomMsgTypes>> client,
+               net::Message<CustomMsgTypes>& msg)
     {
         switch (msg.header.id)
         {
@@ -58,7 +58,7 @@ class Server : public fw::net::ServerInterface<CustomMsgTypes>
         {
             std::cout << "[" << client->id() << "]: New Client Connected\n";
 
-            fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
+            net::Message<CustomMsgTypes> msg_for_other_clients{};
             msg_for_other_clients.header.id = CustomMsgTypes::NewClientConnected;
 
             ClientInfo new_client_info{};
@@ -82,7 +82,7 @@ class Server : public fw::net::ServerInterface<CustomMsgTypes>
 
             clients_.erase(client->id());
 
-            fw::net::Message<CustomMsgTypes> msg_for_other_clients{};
+            net::Message<CustomMsgTypes> msg_for_other_clients{};
             msg_for_other_clients.header.id = CustomMsgTypes::ClientDisconnected;
             msg_for_other_clients << client->id();
 
@@ -103,8 +103,8 @@ class Server : public fw::net::ServerInterface<CustomMsgTypes>
         {
             std::cout << "[" << client->id() << "]: Server Message\n";
 
-            std::array<char, fw::net::array_size> rep{};
-            std::array<char, fw::net::array_size> data{
+            std::array<char, net::array_size> rep{};
+            std::array<char, net::array_size> data{
                 "I am server, msg back to you"
             };
             rep = data;
@@ -117,7 +117,7 @@ class Server : public fw::net::ServerInterface<CustomMsgTypes>
         case CustomMsgTypes::MessageAll:
         {
             std::cout << "[" << client->id() << "]: Message All\n";
-            fw::net::Message<CustomMsgTypes> sending_message{};
+            net::Message<CustomMsgTypes> sending_message{};
             sending_message.header.id = CustomMsgTypes::ServerMessage;
 
             Message message{};

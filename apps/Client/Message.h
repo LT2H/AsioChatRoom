@@ -2,13 +2,13 @@
 
 #include "ClientInfo.h"
 
-#include <NetCommon/FwNet.h>
+#include <NetCommon/NetCommon.h>
 #include <ctime>
 
 struct Message
 {
     ClientInfo client_info;
-    std::array<char, fw::net::array_size> content;
+    std::array<char, net::array_size> content;
     std::time_t datetime{ std::chrono::system_clock::to_time_t(
         std::chrono::system_clock::now()) }; // Convert time_point to time_t
 

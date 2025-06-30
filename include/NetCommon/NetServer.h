@@ -5,8 +5,6 @@
 #include "NetMessage.h"
 #include "NetConnection.h"
 
-namespace fw
-{
 namespace net
 {
 template <typename T> class ServerInterface
@@ -83,7 +81,8 @@ template <typename T> class ServerInterface
                         // Connection allowed, so add to container of new conns
                         connections_.push_back(std::move(new_conn));
 
-                        connections_.back()->connect_to_client(this, ++client_id_counter_);
+                        connections_.back()->connect_to_client(this,
+                                                               ++client_id_counter_);
 
                         std::cout << "[" << connections_.back()->id()
                                   << "] Connection Approved\n";
@@ -191,9 +190,7 @@ template <typename T> class ServerInterface
 
   public:
     // Called when a client is validated
-    virtual void on_client_validated(std::shared_ptr<Connection<T>> client) {
-
-    }
+    virtual void on_client_validated(std::shared_ptr<Connection<T>> client) {}
 
   protected:
     // Thread Safe Queue for incoming message packets
@@ -214,4 +211,3 @@ template <typename T> class ServerInterface
 };
 
 } // namespace net
-} // namespace fw

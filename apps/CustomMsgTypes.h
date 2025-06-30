@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NetCommon/FwNet.h>
+#include <NetCommon/NetCommon.h>
 
 enum class CustomMsgTypes : uint32_t
 {

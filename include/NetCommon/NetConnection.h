@@ -6,8 +6,6 @@
 #include "NetMessage.h"
 #include "NetCommon.h"
 
-namespace fw
-{
 namespace net
 {
 // Forward declare
@@ -55,7 +53,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
 
   public:
     // For server only
-    void connect_to_client(fw::net::ServerInterface<T>* server, uint32_t id = 0)
+    void connect_to_client(net::ServerInterface<T>* server, uint32_t id = 0)
     {
         if (owner_type_ == Owner::server)
         {
@@ -289,7 +287,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
                           });
     }
 
-    void read_validation(fw::net::ServerInterface<T>* server = nullptr)
+    void read_validation(net::ServerInterface<T>* server = nullptr)
     {
         asio::async_read(
             socket_,
@@ -365,4 +363,3 @@ class Connection : public std::enable_shared_from_this<Connection<T>>
 };
 } // namespace net
 
-} // namespace fw

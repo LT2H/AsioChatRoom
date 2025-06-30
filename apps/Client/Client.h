@@ -5,7 +5,7 @@
 #include "Message.h"
 
 #include "NetCommon/NetMessage.h"
-#include <NetCommon/FwNet.h>
+#include <NetCommon/NetCommon.h>
 
 #include <array>
 #include <cstdint>
@@ -13,19 +13,19 @@
 #include <stdexcept>
 #include <string>
 
-class Client : public fw::net::ClientInterface<CustomMsgTypes>
+class Client : public net::ClientInterface<CustomMsgTypes>
 {
   public:
     ~Client() override
     {
-        fw::net::Message<CustomMsgTypes> disconnect_msg{};
+        net::Message<CustomMsgTypes> disconnect_msg{};
         disconnect_msg.header.id = CustomMsgTypes::ClientDisconnected;
         send(disconnect_msg);
         disconnect();
     }
     void ping_server()
     {
-        fw::net::Message<CustomMsgTypes> msg;
+        net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::ServerPing;
 
         // Caution with this
@@ -40,7 +40,7 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
 
     void message_all()
     {
-        fw::net::Message<CustomMsgTypes> msg;
+        net::Message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::MessageAll;
 
         msg << sending_msg_.content << sending_msg_.client_info.color
@@ -82,7 +82,7 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
 
                     clients_list_.push_back(this_client_info);
 
-                    fw::net::Message<CustomMsgTypes> broadcasting_msg{};
+                    net::Message<CustomMsgTypes> broadcasting_msg{};
                     broadcasting_msg.header.id = CustomMsgTypes::NewClientConnected;
                     broadcasting_msg << info_.name; // with this client's name
                     broadcasting_msg << info_.color;
@@ -160,7 +160,7 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
                 case CustomMsgTypes::ServerMessage:
                 {
                     // uint32_t clientID{};
-                    // std::array<char, fw::net::array_size> msg_content{};
+                    // std::array<char, net::array_size> msg_content{};
 
                     Message message{};
 
@@ -182,7 +182,7 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
         }
     }
 
-    std::array<char, fw::net::array_size>& name() { return info_.name; }
+    std::array<char, net::array_size>& name() { return info_.name; }
 
     std::array<float, 3>& color() { return info_.color; }
 
@@ -190,7 +190,7 @@ class Client : public fw::net::ClientInterface<CustomMsgTypes>
 
     std::vector<ClientInfo> clients_list() const { return clients_list_; }
 
-    constexpr std::array<char, fw::net::array_size> name() const
+    constexpr std::array<char, net::array_size> name() const
     {
         return info_.name;
     }

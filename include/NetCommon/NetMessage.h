@@ -2,8 +2,6 @@
 
 #include "NetCommon.h"
 
-namespace fw
-{
 namespace net
 {
 // Message Header is sent at start of all messages. The template allow us
@@ -83,4 +81,3 @@ template <typename T> struct Message
 };
 
 } // namespace net
-} // namespace fw
