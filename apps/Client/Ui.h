@@ -163,6 +163,12 @@ class Ui
             ImGui::SameLine();
             ImGui::Text("Pick your favorite color");
 
+            ImGui::Text("Enter server IP");
+            ImGui::InputTextWithHint("##ServerIpInput",
+                                     "e.g. 127.0.0.1",
+                                     client.ip_to_connect().data(),
+                                     client.ip_to_connect().size());
+
             float button_width{ 100.0f };
             float spacing{ 20.0f };
             float total_width{ button_width * 2 + spacing };
@@ -175,7 +181,7 @@ class Ui
             {
                 if (!client.is_connected())
                 {
-                    client.connect("127.0.0.1", 60000);
+                    client.connect(client.ip_to_connect().data(), 60000);
                 }
 
                 ImGui::CloseCurrentPopup();
@@ -246,7 +252,7 @@ class Ui
         ImGui::BeginChild("InputPanel", ImVec2(0, bottom_height), true);
 
         ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Bottom padding
-        ImGui::Indent(100.0f);              // Left padding
+        ImGui::Indent(100.0f);             // Left padding
 
         if (!client.is_connected())
         {

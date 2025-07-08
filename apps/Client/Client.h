@@ -184,6 +184,8 @@ class Client : public net::ClientInterface<CustomMsgTypes>
 
     std::array<char, net::array_size>& name() { return info_.name; }
 
+    std::array<char, net::array_size>& ip_to_connect() { return info_.ip_to_connect; }
+
     std::array<float, 3>& color() { return info_.color; }
 
     std::array<float, 3> color() const { return info_.color; }
