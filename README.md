@@ -30,7 +30,7 @@ A client-server chat room application using a small custom framework to abstract
     cmake -S . -B build
     cmake --build build
     
-3. Run the Server then Client(s) inside `build/apps/Debug`.
+3. Run the server, then the client(s), from inside the build folder
 
 ## License
 - This repository is licensed under Apache 2.0 (see included LICENSE.txt file for more details)
