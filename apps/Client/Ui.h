@@ -169,9 +169,8 @@ class Ui
                                      client.ip_to_connect().data(),
                                      client.ip_to_connect().size());
 
-            int port{ 60000 };
-            ImGui::InputInt("##ServerPortInput", &port, 0, 0);
-            client.set_port(port);
+            ImGui::InputInt("##ServerPortInput", &port_, 0, 0);
+            client.set_port(port_);
 
             float button_width{ 100.0f };
             float spacing{ 20.0f };
@@ -321,4 +320,5 @@ class Ui
     GLFWwindow* window_;
     bool should_open_popup_{ false };
     Message msg_to_send_{};
+    int port_{ 60000 };
 };
