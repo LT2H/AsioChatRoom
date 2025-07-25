@@ -4,6 +4,7 @@
 #include <NetCommon/NetCommon.h>
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -48,9 +49,8 @@ class Server : public net::ServerInterface<CustomMsgTypes>
     {
     }
 
-    virtual void
-    on_message(std::shared_ptr<net::Connection<CustomMsgTypes>> client,
-               net::Message<CustomMsgTypes>& msg)
+    virtual void on_message(std::shared_ptr<net::Connection<CustomMsgTypes>> client,
+                            net::Message<CustomMsgTypes>& msg)
     {
         switch (msg.header.id)
         {
@@ -104,9 +104,7 @@ class Server : public net::ServerInterface<CustomMsgTypes>
             std::cout << "[" << client->id() << "]: Server Message\n";
 
             std::array<char, net::array_size> rep{};
-            std::array<char, net::array_size> data{
-                "I am server, msg back to you"
-            };
+            std::array<char, net::array_size> data{ "I am server, msg back to you" };
             rep = data;
             msg << rep;
 
@@ -121,7 +119,8 @@ class Server : public net::ServerInterface<CustomMsgTypes>
             sending_message.header.id = CustomMsgTypes::ServerMessage;
 
             Message message{};
-            msg >> message.client_info.name >> message.client_info.color >> message.content;
+            msg >> message.client_info.name >> message.client_info.color >>
+                message.content;
 
             // Must reverse the order
             sending_message << message.content << message.client_info.color
@@ -138,9 +137,44 @@ class Server : public net::ServerInterface<CustomMsgTypes>
     std::unordered_map<uint32_t, ClientInfo> clients_{};
 };
 
+bool clear_failed_extraction()
+{
+    if (!std::cin)
+    {
+        if (std::cin.eof()) // If the stream was closed
+        {
+            std::exit(0);
+        }
+
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Remove the bad input
+        return true;
+    }
+    return false;
+}
+
+uint16_t promt_port()
+{
+    while (true)
+    {
+        std::cout << "Enter the port you would like the server to use: ";
+        int port{};
+        std::cin >> port;
+
+        if (clear_failed_extraction())
+        {
+            std::cout << "Invalid port. Please try again\n";
+            continue;
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Remove the bad input
+        return port;
+    }
+}
+
 int main()
 {
-    Server server{ 60000 };
+    Server server{ promt_port() };
+
     server.start();
 
     while (true)

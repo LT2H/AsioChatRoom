@@ -10,6 +10,7 @@ struct ClientInfo
     std::array<float, 3> color{ 1.0f, 1.0f, 1.0f };
 
     std::array<char, net::array_size> ip_to_connect{}; 
+    int port_to_connect{}; 
 
     std::string to_string() const { return std::string{ name.data() }; }
 };

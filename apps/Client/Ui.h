@@ -151,7 +151,7 @@ class Ui
                 ImVec2(8, 6)); // Add internal padding to inputs/buttons
 
 
-            ImGui::Text("Enter your display name");
+            ImGui::Text("Enter your display name:");
             ImGui::InputTextWithHint("##ClientInfoInput",
                                      "Your name...",
                                      client.name().data(),
@@ -163,11 +163,15 @@ class Ui
             ImGui::SameLine();
             ImGui::Text("Pick your favorite color");
 
-            ImGui::Text("Enter server IP");
+            ImGui::Text("Enter the server IP and port:");
             ImGui::InputTextWithHint("##ServerIpInput",
-                                     "e.g. 127.0.0.1",
+                                     "127.0.0.1",
                                      client.ip_to_connect().data(),
                                      client.ip_to_connect().size());
+
+            int port{ 60000 };
+            ImGui::InputInt("##ServerPortInput", &port, 0, 0);
+            client.set_port(port);
 
             float button_width{ 100.0f };
             float spacing{ 20.0f };
@@ -181,7 +185,8 @@ class Ui
             {
                 if (!client.is_connected())
                 {
-                    client.connect(client.ip_to_connect().data(), 60000);
+                    client.connect(client.ip_to_connect().data(),
+                                   client.port_to_connect());
                 }
 
                 ImGui::CloseCurrentPopup();

@@ -182,9 +182,15 @@ class Client : public net::ClientInterface<CustomMsgTypes>
         }
     }
 
+    void set_port(int port) {
+        info_.port_to_connect = port;
+    }
+
     std::array<char, net::array_size>& name() { return info_.name; }
 
     std::array<char, net::array_size>& ip_to_connect() { return info_.ip_to_connect; }
+
+    int port_to_connect() { return info_.port_to_connect; }
 
     std::array<float, 3>& color() { return info_.color; }
 

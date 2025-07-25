@@ -38,7 +38,9 @@ template <typename T> class ServerInterface
             return false;
         }
 
-        std::cout << "[SERVER] Started!\n";
+        std::cout << "[SERVER] Listening on "
+                  << asio_acceptor_.local_endpoint().address().to_string() << ":"
+                  << asio_acceptor_.local_endpoint().port() << "\n";
         return true;
     }
 
