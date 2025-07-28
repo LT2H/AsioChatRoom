@@ -153,7 +153,7 @@ bool clear_failed_extraction()
     return false;
 }
 
-uint16_t promt_port()
+uint16_t prompt_port()
 {
     while (true)
     {
@@ -173,7 +173,7 @@ uint16_t promt_port()
 
 int main()
 {
-    Server server{ promt_port() };
+    Server server{ prompt_port() };
 
     server.start();
 
