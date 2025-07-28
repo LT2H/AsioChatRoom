@@ -20,17 +20,22 @@ A client-server chat room application using a small custom framework to abstract
 
 ## Getting Started
 
-1. Clone this repository:
-    ```sh
+**Clone this repository**
+
     git clone https://github.com/LT2H/AsioChatRoom.git
     
-2. Build Server and Client
-    ```sh
+**Build Server and Client**
+
     cd AsioChatRoom
     cmake -S . -B build
     cmake --build build
     
-3. Run the server, then the client(s), from inside the build folder
+**Optional: If you use Ninja**
+
+    cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=YES -DCMAKE_CXX_COMPILER=clang++ -S . -B build
+    cmake --build build
+    
+**First, launch the server binary and choose a port. Then, run one or more clients and connect by entering the server's IP and port.**
 
 ## License
 - This repository is licensed under Apache 2.0 (see included LICENSE.txt file for more details)
