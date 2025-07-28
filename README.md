@@ -13,7 +13,9 @@ A client-server chat room application using a small custom framework to abstract
 ## Technical Details
   - **Language**: C++
   - **Standard**: C++20
-  - **Dependencies**: Asio(standalone), ImGui
+  - **Dependencies**:
+    - [Asio (standalone)](https://think-async.com/)
+    - [ImGui](https://github.com/ocornut/imgui)
   - **Build System**: CMake
   - **Platform**: Windows, Linux
   - **Socket Communication**: TCP/IP using Asio for network communication
